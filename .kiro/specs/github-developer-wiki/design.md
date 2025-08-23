@@ -62,36 +62,47 @@ graph TB
 - **Method**: GET
 - **Purpose**: Initiate GitHub OAuth flow
 - **Integration**: NextAuth.js GitHub provider
+- **Implementation**: Functional API route handlers
 
 #### `/api/auth/callback/github`
 - **Method**: GET
 - **Purpose**: Handle GitHub OAuth callback and token exchange
 - **Integration**: NextAuth.js callback handling
+- **Implementation**: Functional callback processing
 
 #### `/api/repositories`
 - **Method**: GET
 - **Purpose**: Fetch user's accessible repositories (authenticated users only)
 - **Output**: `{ repositories: Repository[] }`
-- **Integration**: GitHub MCP tools with user authentication
+- **Integration**: Functional GitHub MCP service calls with user authentication
 
 #### `/api/query`
 - **Method**: POST
 - **Purpose**: Handles all repository queries through LangChain orchestrator
 - **Input**: `{ repositoryUrl: string, query: string, userToken?: string }`
 - **Output**: `{ response: string, sources: string[], codeReferences?: CodeReference[] }`
-- **Integration**: LangChain determines which GitHub MCP tools to call based on query
+- **Integration**: Functional composition of LangChain and GitHub MCP services
 
 ### LangChain Orchestration Layer
 
-#### QueryProcessor
-- **Purpose**: Analyzes user queries using configured LLM and calls appropriate GitHub MCP tools
-- **Function**: Takes repository URL and natural language query, uses LLM to determine which MCP tools to call, processes results into readable response
-- **LLM Integration**: Supports OpenAI GPT-4, Anthropic Claude, or local models through LangChain
-- **Key MCP Tools Used**:
-  - `mcp_github_get_file_contents` - For file-specific questions
-  - `mcp_github_search_code` - For code pattern searches
-  - `mcp_github_get_pull_request_files` - For understanding recent changes
-  - `mcp_github_search_repositories` - For finding related projects
+#### Query Processing Functions
+- **processQuery()**: Main orchestration function that analyzes user queries using configured LLM
+- **determineMCPTools()**: Function to decide which GitHub MCP tools to call based on query analysis
+- **formatResponse()**: Function to process MCP results into readable response format
+- **LLM Integration**: Functional approach supporting OpenAI GPT-4, Anthropic Claude, and OpenRouter models
+- **Key MCP Functions Used**:
+  - `getFileContents()` - For file-specific questions
+  - `searchCode()` - For code pattern searches
+  - `getPullRequestFiles()` - For understanding recent changes
+  - `searchRepositories()` - For finding related projects
+
+### Functional Architecture Principles
+
+All services and utilities follow functional programming patterns:
+- **Pure Functions**: Predictable inputs and outputs without side effects
+- **Immutable Data**: Configuration and state passed as parameters
+- **Composition**: Complex functionality built by composing simpler functions
+- **No Classes**: All implementations use functional modules instead of class-based patterns
 
 ### User-Provided LLM Configuration
 

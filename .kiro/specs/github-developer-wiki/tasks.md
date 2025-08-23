@@ -1,6 +1,10 @@
 # Implementation Plan
 
 - [x] 1. Set up project dependencies and configuration
+
+
+
+
   - Install Next.js 15 with App Router and TypeScript
   - Install LangChain dependencies and GitHub MCP integration packages
   - Set up basic project structure with services, types, and utilities
@@ -8,7 +12,12 @@
   - Implement GitHub URL parsing utilities
   - _Requirements: 1.1, 2.1_
 
-- [ ] 2. Implement GitHub OAuth authentication
+- [x] 2. Implement GitHub OAuth authentication
+
+
+
+
+
   - Install NextAuth.js and configure GitHub OAuth provider
   - Create authentication API routes (`/api/auth/[...nextauth]`)
   - Build simple login page with GitHub OAuth button
