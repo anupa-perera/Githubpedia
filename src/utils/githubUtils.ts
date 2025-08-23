@@ -1,5 +1,5 @@
 /**
- * GitHub utility functions for parsing URLs and repository information
+ * GitHub utility functions for URL parsing and validation
  */
 
 export interface GitHubRepo {
@@ -8,43 +8,87 @@ export interface GitHubRepo {
 }
 
 /**
- * Parse a GitHub repository URL to extract owner and repo name
+ * Parse a GitHub URL and extract owner and repo information
+ * Supports various GitHub URL formats:
+ * - https://github.com/owner/repo
+ * - https://github.com/owner/repo/
+ * - https://github.com/owner/repo.git
+ * - github.com/owner/repo
+ * - owner/repo
  */
 export function parseGitHubUrl(url: string): GitHubRepo | null {
-  try {
-    // Handle various GitHub URL formats
-    const patterns = [
-      /github\.com\/([^\/]+)\/([^\/]+)/,  // https://github.com/owner/repo
-      /github\.com\/([^\/]+)\/([^\/]+)\.git/, // https://github.com/owner/repo.git
-      /git@github\.com:([^\/]+)\/([^\/]+)\.git/ // git@github.com:owner/repo.git
-    ];
+  if (!url || typeof url !== 'string') {
+    return null;
+  }
 
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match) {
-        return {
-          owner: match[1],
-          repo: match[2].replace(/\.git$/, '') // Remove .git suffix if present
-        };
-      }
+  try {
+    // Remove trailing slash and .git extension
+    const cleanUrl = url.trim().replace(/\/$/, '').replace(/\.git$/, '');
+
+    // Handle different URL formats
+    let match: RegExpMatchArray | null = null;
+
+    // Full GitHub URL: https://github.com/owner/repo
+    match = cleanUrl.match(/^https?:\/\/github\.com\/([^\/]+)\/([^\/]+)/);
+    if (match) {
+      return { owner: match[1], repo: match[2] };
+    }
+
+    // GitHub URL without protocol: github.com/owner/repo
+    match = cleanUrl.match(/^github\.com\/([^\/]+)\/([^\/]+)/);
+    if (match) {
+      return { owner: match[1], repo: match[2] };
+    }
+
+    // Short format: owner/repo
+    match = cleanUrl.match(/^([^\/]+)\/([^\/]+)$/);
+    if (match) {
+      return { owner: match[1], repo: match[2] };
     }
 
     return null;
   } catch (error) {
+    console.error('Error parsing GitHub URL:', error);
     return null;
   }
 }
 
 /**
- * Validate if a string is a valid GitHub repository URL
+ * Validate if a URL is a valid GitHub repository URL
  */
 export function isValidGitHubUrl(url: string): boolean {
-  return parseGitHubUrl(url) !== null;
+  if (!url || typeof url !== 'string') {
+    return false;
+  }
+
+  const repoInfo = parseGitHubUrl(url);
+  if (!repoInfo) {
+    return false;
+  }
+
+  // Basic validation of owner and repo names
+  const { owner, repo } = repoInfo;
+  
+  // GitHub username/organization rules:
+  // - May only contain alphanumeric characters or single hyphens
+  // - Cannot begin or end with a hyphen
+  // - Maximum 39 characters
+  const validName = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
+  
+  return validName.test(owner) && validName.test(repo);
 }
 
 /**
- * Create a GitHub repository URL from owner and repo name
+ * Convert repository info to a standard GitHub URL
  */
-export function createGitHubUrl(owner: string, repo: string): string {
-  return `https://github.com/${owner}/${repo}`;
+export function toGitHubUrl(repo: GitHubRepo): string {
+  return `https://github.com/${repo.owner}/${repo.repo}`;
+}
+
+/**
+ * Extract repository name from URL for display purposes
+ */
+export function getRepoDisplayName(url: string): string {
+  const repoInfo = parseGitHubUrl(url);
+  return repoInfo ? `${repoInfo.owner}/${repoInfo.repo}` : url;
 }

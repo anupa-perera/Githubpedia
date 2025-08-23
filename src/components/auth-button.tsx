@@ -17,6 +17,12 @@ export function AuthButton() {
   if (session) {
     return (
       <div className="flex items-center space-x-4">
+        <a
+          href="/chat"
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm font-medium"
+        >
+          Go to Chat
+        </a>
         <div className="flex items-center space-x-2">
           <img
             src={session.user?.image || ''}

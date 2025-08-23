@@ -24,7 +24,12 @@
   - Update existing MCP service to use authenticated user tokens
   - _Requirements: 1.1, 1.2, 1.5_
 
-- [ ] 3. Create LLM configuration interface
+- [x] 3. Create LLM configuration interface
+
+
+
+
+
   - Install OpenAI, Anthropic, and OpenRouter SDK packages
   - Create LLM setup page with provider selection (OpenAI, Anthropic, OpenRouter)
   - Add API key input form with provider-specific validation
@@ -32,13 +37,28 @@
   - Add OpenRouter model selection dropdown for users who choose OpenRouter
   - _Requirements: 2.1.1, 2.1.2, 2.1.3_
 
-- [ ] 4. Build repository input and query interface
+- [x] 4. Build repository input and query interface
+
+
+
+
+
   - Create main page with repository URL input using existing GitHub utilities
   - Add simple text area for user queries
   - Display basic repository information after URL validation
   - _Requirements: 1.3, 1.4_
 
-- [ ] 5. Implement core query processing
+- [x] 5. Implement core query processing
+
+
+
+
+
+
+
+
+
+
   - Create query processing API route (`/api/query`)
   - Integrate LangChain with multi-provider LLM support (OpenAI, Anthropic, OpenRouter)
   - Connect LangChain to existing MCP service for GitHub data
@@ -46,6 +66,11 @@
   - _Requirements: 2.1, 2.2, 2.3, 3.1_
 
 - [ ] 6. Add basic UI improvements and error handling
+
+
+
+
+
   - Add loading states for queries
   - Display formatted responses with code syntax highlighting
   - Handle common errors (invalid repo, API failures, rate limits)
