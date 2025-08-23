@@ -1,5 +1,9 @@
 # Deployment Guide
 
+## ✅ Successfully Deployed!
+
+**Production URL**: https://githubpedia-hjlymty9g-anupaxtream-5314s-projects.vercel.app
+
 ## Vercel Deployment
 
 This application is configured for deployment on Vercel, the platform created by the makers of Next.js.

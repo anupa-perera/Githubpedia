@@ -1,3 +1,11 @@
+# Githubpedia
+
+A Next.js application that provides an intelligent interface for exploring GitHub repositories using AI-powered chat and MCP (Model Context Protocol) integration.
+
+## 🚀 Live Demo
+
+**Production URL**: https://githubpedia-hjlymty9g-anupaxtream-5314s-projects.vercel.app
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
@@ -28,6 +36,31 @@ To learn more about Next.js, take a look at the following resources:
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## 🚀 Deployment
+
+### Quick Deploy Commands
+
+```bash
+# Deploy to preview
+npm run deploy:preview
+
+# Deploy to production
+npm run deploy
+```
+
+### Environment Variables Required
+
+Before deploying, ensure you have these environment variables configured:
+
+- `GITHUB_TOKEN` - GitHub Personal Access Token
+- `GITHUB_CLIENT_ID` - GitHub OAuth App Client ID  
+- `GITHUB_CLIENT_SECRET` - GitHub OAuth App Client Secret
+- `NEXTAUTH_SECRET` - NextAuth secret key
+- `NEXTAUTH_URL` - Your production URL
+- `ENCRYPTION_SECRET` - 32-character encryption secret
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
 
 ## Deploy on Vercel
 
