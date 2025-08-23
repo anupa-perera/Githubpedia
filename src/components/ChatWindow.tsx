@@ -2,7 +2,11 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { ChatThread } from './ChatInterface';
-import { parseGitHubUrl, isValidGitHubUrl } from '../utils/githubUtils';
+
+import { RepositoryInput } from './RepositoryInput';
+import { RepositoryInfo } from './RepositoryInfo';
+import { MessageRenderer } from './MessageRenderer';
+import { Repository } from '@/types/github';
 
 interface Message {
   id: string;
@@ -19,11 +23,23 @@ interface ChatWindowProps {
   onShowLLMSetup: () => void;
 }
 
+interface RepositoryData extends Repository {
+  stargazers_count?: number;
+  forks_count?: number;
+  open_issues_count?: number;
+  default_branch?: string;
+  topics?: string[];
+}
+
 export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSetup }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [repositoryUrl, setRepositoryUrl] = useState(thread.repository || '');
+
+  const [repositoryData, setRepositoryData] = useState<RepositoryData | null>(null);
+  const [, setRepositoryUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingRepo, setIsLoadingRepo] = useState(false);
+  const [repoError, setRepoError] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Load messages for this thread
@@ -50,35 +66,48 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleRepositorySubmit = () => {
-    if (!isValidGitHubUrl(repositoryUrl)) {
-      alert('Please enter a valid GitHub repository URL');
-      return;
-    }
+  const handleRepositorySubmit = async (url: string) => {
+    setIsLoadingRepo(true);
+    setRepoError('');
 
-    const repoInfo = parseGitHubUrl(repositoryUrl);
-    if (repoInfo) {
-      const repoName = `${repoInfo.owner}/${repoInfo.repo}`;
-      onUpdateThread({ 
+    try {
+      const response = await fetch(`/api/repositories?url=${encodeURIComponent(url)}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch repository information');
+      }
+
+      setRepositoryData(data);
+      setRepositoryUrl(url);
+
+      const repoName = data.full_name;
+      onUpdateThread({
         repository: repoName,
         title: `Chat about ${repoName}`
       });
-      
+
       // Add system message
       const systemMessage: Message = {
         id: `msg-${Date.now()}`,
         role: 'assistant',
-        content: `🎯 Repository set to **${repoName}**. You can now ask questions about this repository!`,
+        content: `🎯 Repository set to **${repoName}**. Repository information loaded successfully! You can now ask questions about this repository.`,
         timestamp: new Date(),
         repository: repoName,
       };
       setMessages(prev => [...prev, systemMessage]);
+
+    } catch (error) {
+      console.error('Error fetching repository:', error);
+      setRepoError(error instanceof Error ? error.message : 'Failed to fetch repository information');
+    } finally {
+      setIsLoadingRepo(false);
     }
   };
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
-    
+
     if (!llmConfigured) {
       onShowLLMSetup();
       return;
@@ -97,32 +126,57 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
     setIsLoading(true);
 
     // Update thread with last message
-    onUpdateThread({ 
+    onUpdateThread({
       lastMessage: input.trim(),
       updatedAt: new Date()
     });
 
     try {
-      // TODO: Implement actual API call to query processing
-      // For now, simulate a response
-      setTimeout(() => {
-        const assistantMessage: Message = {
-          id: `msg-${Date.now() + 1}`,
-          role: 'assistant',
-          content: `I received your question: "${input.trim()}". This is a mock response. The actual implementation will use the configured LLM to analyze the repository and provide intelligent answers.`,
-          timestamp: new Date(),
-          repository: thread.repository,
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-        setIsLoading(false);
-      }, 2000);
+      // Make actual API call to query processing
+      const response = await fetch('/api/query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          repositoryUrl: `https://github.com/${thread.repository}`,
+          query: input.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to process query');
+      }
+
+      const assistantMessage: Message = {
+        id: `msg-${Date.now() + 1}`,
+        role: 'assistant',
+        content: data.response || 'No response generated',
+        timestamp: new Date(),
+        repository: thread.repository,
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+      setIsLoading(false);
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      const errorMessage: Message = {
+        id: `msg-${Date.now() + 1}`,
+        role: 'assistant',
+        content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to process your question'}. Please try again.`,
+        timestamp: new Date(),
+        repository: thread.repository,
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
       setIsLoading(false);
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -133,34 +187,41 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
     <div className="flex flex-col h-full bg-gray-900">
       {/* Repository Setup */}
       {!thread.repository && (
-        <div className="bg-blue-900 border-b border-blue-700 p-4">
-          <div className="flex items-center space-x-3">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-blue-200 mb-2">
-                GitHub Repository URL
-              </label>
-              <input
-                type="text"
-                value={repositoryUrl}
-                onChange={(e) => setRepositoryUrl(e.target.value)}
-                placeholder="https://github.com/owner/repository"
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyPress={(e) => e.key === 'Enter' && handleRepositorySubmit()}
-              />
-            </div>
+        <div className="bg-gray-800 border-b border-gray-700 p-6">
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-bold text-white mb-2">Explore a GitHub Repository</h2>
+            <p className="text-gray-400">Enter a GitHub repository URL to start exploring and asking questions</p>
+          </div>
+          <RepositoryInput
+            onRepositorySubmit={handleRepositorySubmit}
+            isLoading={isLoadingRepo}
+            error={repoError}
+          />
+        </div>
+      )}
+
+      {/* Repository Info - Compact */}
+      {thread.repository && repositoryData && (
+        <div className="bg-gray-800 border-b border-gray-700 px-4 py-2">
+          <RepositoryInfo repository={repositoryData} />
+          <div className="text-center mt-1">
             <button
-              onClick={handleRepositorySubmit}
-              disabled={!repositoryUrl.trim()}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-md font-medium transition-colors"
+              onClick={() => {
+                onUpdateThread({ repository: undefined, title: 'New Conversation' });
+                setMessages([]);
+                setRepositoryData(null);
+                setRepositoryUrl('');
+              }}
+              className="text-gray-500 hover:text-gray-300 text-xs underline"
             >
-              Set Repository
+              Change Repository
             </button>
           </div>
         </div>
       )}
 
-      {/* Repository Info */}
-      {thread.repository && (
+      {/* Fallback for repository without detailed data */}
+      {thread.repository && !repositoryData && (
         <div className="bg-gray-800 border-b border-gray-700 px-4 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 text-green-400">
@@ -173,6 +234,8 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
               onClick={() => {
                 onUpdateThread({ repository: undefined, title: 'New Conversation' });
                 setMessages([]);
+                setRepositoryData(null);
+                setRepositoryUrl('');
               }}
               className="text-gray-400 hover:text-white text-sm"
             >
@@ -200,21 +263,24 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-3xl px-4 py-2 rounded-lg ${
-                  message.role === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-100'
-                }`}
+                className={`max-w-4xl px-4 py-3 rounded-lg ${message.role === 'user'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700 text-gray-100'
+                  }`}
               >
-                <div className="whitespace-pre-wrap">{message.content}</div>
-                <div className="text-xs opacity-70 mt-1">
+                {message.role === 'user' ? (
+                  <div className="whitespace-pre-wrap">{message.content}</div>
+                ) : (
+                  <MessageRenderer content={message.content} />
+                )}
+                <div className="text-xs opacity-70 mt-2 text-right">
                   {message.timestamp.toLocaleTimeString()}
                 </div>
               </div>
             </div>
           ))
         )}
-        
+
         {isLoading && (
           <div className="flex justify-start">
             <div className="bg-gray-700 text-gray-100 px-4 py-2 rounded-lg">
@@ -225,7 +291,7 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
             </div>
           </div>
         )}
-        
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -249,14 +315,14 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
             </div>
           </div>
         )}
-        
+
         <div className="flex space-x-3">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder={
-              !thread.repository 
+              !thread.repository
                 ? "Set a repository first to start asking questions..."
                 : !llmConfigured
                   ? "Configure your AI provider to start chatting..."

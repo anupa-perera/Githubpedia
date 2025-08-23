@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
         model: llmConfig.model,
         configuredAt: llmConfig.configuredAt,
       });
-    } catch (error) {
+    } catch {
       // Invalid config, return not configured
       return NextResponse.json({ configured: false });
     }

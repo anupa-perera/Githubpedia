@@ -37,13 +37,28 @@
   - Add OpenRouter model selection dropdown for users who choose OpenRouter
   - _Requirements: 2.1.1, 2.1.2, 2.1.3_
 
-- [ ] 4. Build repository input and query interface
+- [x] 4. Build repository input and query interface
+
+
+
+
+
   - Create main page with repository URL input using existing GitHub utilities
   - Add simple text area for user queries
   - Display basic repository information after URL validation
   - _Requirements: 1.3, 1.4_
 
-- [ ] 5. Implement core query processing
+- [x] 5. Implement core query processing
+
+
+
+
+
+
+
+
+
+
   - Create query processing API route (`/api/query`)
   - Integrate LangChain with multi-provider LLM support (OpenAI, Anthropic, OpenRouter)
   - Connect LangChain to existing MCP service for GitHub data

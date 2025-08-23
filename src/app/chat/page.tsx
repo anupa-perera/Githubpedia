@@ -3,18 +3,19 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { LandingPage } from '../components/LandingPage';
+import { ChatInterface } from '@/components/ChatInterface';
+import LLMConfigCheck from '@/components/LLMConfigCheck';
 
-export default function Home() {
+export default function ChatPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect authenticated users to chat
-    if (session) {
-      router.push('/chat');
+    // Redirect unauthenticated users to home
+    if (status === 'unauthenticated') {
+      router.push('/');
     }
-  }, [session, router]);
+  }, [status, router]);
 
   if (status === 'loading') {
     return (
@@ -24,6 +25,13 @@ export default function Home() {
     );
   }
 
-  // Show landing page for unauthenticated users
-  return <LandingPage />;
+  if (!session) {
+    return null; // Will redirect via useEffect
+  }
+
+  return (
+    <LLMConfigCheck>
+      <ChatInterface />
+    </LLMConfigCheck>
+  );
 }

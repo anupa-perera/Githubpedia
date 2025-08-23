@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     let currentConfig;
     try {
       currentConfig = JSON.parse(llmConfigCookie.value);
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { error: 'Invalid configuration found. Please reconfigure your API keys.' },
         { status: 400 }

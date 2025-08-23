@@ -42,7 +42,7 @@ export function LandingPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               🚀 Getting Started
             </h3>
-            <ol className="text-left space-y-3 text-gray-700">
+            <ol className="text-left space-y-3 text-gray-700 mb-6">
               <li className="flex items-start space-x-2">
                 <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium">1</span>
                 <span>Sign in with your GitHub account to access repositories</span>
@@ -56,6 +56,10 @@ export function LandingPage() {
                 <span>Enter any GitHub repository URL and start asking questions</span>
               </li>
             </ol>
+            
+            <div className="text-center">
+              <AuthButton />
+            </div>
           </div>
         </div>
       </main>
