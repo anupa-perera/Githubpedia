@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface MessageRendererProps {
   content: string;
@@ -24,6 +26,27 @@ function CodeBlock({ code, language }: CodeBlockProps) {
       console.error('Failed to copy code:', error);
     }
   };
+
+  // Map common language aliases to supported languages
+  const normalizeLanguage = (lang?: string): string => {
+    if (!lang) return 'text';
+    
+    const langMap: Record<string, string> = {
+      'js': 'javascript',
+      'ts': 'typescript',
+      'py': 'python',
+      'sh': 'bash',
+      'shell': 'bash',
+      'yml': 'yaml',
+      'md': 'markdown',
+      'jsx': 'javascript',
+      'tsx': 'typescript'
+    };
+    
+    return langMap[lang.toLowerCase()] || lang.toLowerCase();
+  };
+
+  const normalizedLanguage = normalizeLanguage(language);
 
   return (
     <div className="relative group my-3">
@@ -52,11 +75,28 @@ function CodeBlock({ code, language }: CodeBlockProps) {
           )}
         </button>
       </div>
-      <pre className="bg-gray-900 p-3 rounded-b-md overflow-x-auto">
-        <code className="text-sm text-gray-100 font-mono whitespace-pre">
+      <div className="bg-gray-900 rounded-b-md overflow-x-auto">
+        <SyntaxHighlighter
+          language={normalizedLanguage}
+          style={oneDark}
+          customStyle={{
+            margin: 0,
+            padding: '12px',
+            background: 'transparent',
+            fontSize: '14px',
+            lineHeight: '1.5'
+          }}
+          showLineNumbers={code.split('\n').length > 5}
+          lineNumberStyle={{
+            color: '#6b7280',
+            fontSize: '12px',
+            paddingRight: '12px',
+            minWidth: '2em'
+          }}
+        >
           {code}
-        </code>
-      </pre>
+        </SyntaxHighlighter>
+      </div>
     </div>
   );
 }
@@ -152,41 +192,75 @@ export function MessageRenderer({ content, className = '' }: MessageRendererProp
         parts.push(<br key={`br-${lineIndex}`} />);
       }
 
-      let processedLine = line;
-      let currentIndex = 0;
-
-      // Parse file paths (src/path/to/file.ext)
+      // Parse URLs and file paths
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
       const filePathRegex = /(\w+\/[\w\/.-]+\.\w+)/g;
-      let fileMatch;
-      const fileParts: React.ReactNode[] = [];
+      
+      let urlMatch: RegExpExecArray | null;
+      let fileMatch: RegExpExecArray | null;
+      const specialParts: { index: number; length: number; element: React.ReactNode }[] = [];
 
+      // Find URLs
+      while ((urlMatch = urlRegex.exec(line)) !== null) {
+        specialParts.push({
+          index: urlMatch.index,
+          length: urlMatch[0].length,
+          element: (
+            <a
+              key={`url-${lineIndex}-${urlMatch.index}`}
+              href={urlMatch[1]}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 underline"
+            >
+              {urlMatch[1]}
+            </a>
+          )
+        });
+      }
+
+      // Find file paths (only if no URLs overlap)
       while ((fileMatch = filePathRegex.exec(line)) !== null) {
-        // Add text before file path
-        if (fileMatch.index > currentIndex) {
-          fileParts.push(line.slice(currentIndex, fileMatch.index));
-        }
-
-        // Add file path with styling
-        fileParts.push(
-          <span
-            key={`file-${lineIndex}-${fileMatch.index}`}
-            className="bg-gray-800 text-blue-400 px-1.5 py-0.5 rounded text-sm font-mono"
-          >
-            {fileMatch[1]}
-          </span>
+        const overlaps = specialParts.some(part => 
+          fileMatch!.index < part.index + part.length && 
+          fileMatch!.index + fileMatch![0].length > part.index
         );
-
-        currentIndex = fileMatch.index + fileMatch[0].length;
+        
+        if (!overlaps) {
+          specialParts.push({
+            index: fileMatch.index,
+            length: fileMatch[0].length,
+            element: (
+              <span
+                key={`file-${lineIndex}-${fileMatch.index}`}
+                className="bg-gray-800 text-blue-400 px-1.5 py-0.5 rounded text-sm font-mono"
+              >
+                {fileMatch[1]}
+              </span>
+            )
+          });
+        }
       }
 
-      // Add remaining text
-      if (currentIndex < line.length) {
-        fileParts.push(line.slice(currentIndex));
-      }
+      // Sort by index
+      specialParts.sort((a, b) => a.index - b.index);
 
-      // If we found file paths, use the processed parts
-      if (fileParts.length > 1) {
-        parts.push(...fileParts);
+      // Build the line with special elements
+      if (specialParts.length > 0) {
+        let lastIndex = 0;
+        specialParts.forEach(part => {
+          // Add text before special element
+          if (part.index > lastIndex) {
+            parts.push(line.slice(lastIndex, part.index));
+          }
+          // Add special element
+          parts.push(part.element);
+          lastIndex = part.index + part.length;
+        });
+        // Add remaining text
+        if (lastIndex < line.length) {
+          parts.push(line.slice(lastIndex));
+        }
       } else {
         // Parse bold (**text**)
         const boldRegex = /\*\*(.*?)\*\*/g;

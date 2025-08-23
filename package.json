@@ -15,12 +15,15 @@
     "@langchain/core": "^0.3.71",
     "@langchain/openai": "^0.6.9",
     "@modelcontextprotocol/sdk": "^1.17.4",
+    "@modelcontextprotocol/server-github": "^2025.4.8",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "langchain": "^0.3.30",
     "next": "15.4.6",
     "next-auth": "^4.24.11",
     "openai": "^5.15.0",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "react-syntax-highlighter": "^15.6.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

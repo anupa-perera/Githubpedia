@@ -66,6 +66,11 @@
   - _Requirements: 2.1, 2.2, 2.3, 3.1_
 
 - [ ] 6. Add basic UI improvements and error handling
+
+
+
+
+
   - Add loading states for queries
   - Display formatted responses with code syntax highlighting
   - Handle common errors (invalid repo, API failures, rate limits)

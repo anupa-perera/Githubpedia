@@ -6,6 +6,8 @@ import { ChatThread } from './ChatInterface';
 import { RepositoryInput } from './RepositoryInput';
 import { RepositoryInfo } from './RepositoryInfo';
 import { MessageRenderer } from './MessageRenderer';
+import { ConversationHistory } from './ConversationHistory';
+import { ErrorDisplay } from './ErrorDisplay';
 import { Repository } from '@/types/github';
 
 interface Message {
@@ -40,9 +42,12 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingRepo, setIsLoadingRepo] = useState(false);
   const [repoError, setRepoError] = useState('');
+  const [queryError, setQueryError] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
+  const [lastQuery, setLastQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load messages for this thread
+  // Load messages for this thread and reset all state
   useEffect(() => {
     const savedMessages = localStorage.getItem(`messages-${thread.id}`);
     if (savedMessages) {
@@ -51,8 +56,43 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
         timestamp: new Date(msg.timestamp),
       }));
       setMessages(parsedMessages);
+    } else {
+      setMessages([]);
     }
-  }, [thread.id]);
+
+    // Reset all state when switching threads
+    setRepositoryData(null);
+    setRepositoryUrl('');
+    setIsLoading(false);
+    setIsLoadingRepo(false);
+    setRepoError('');
+    setQueryError('');
+    setShowHistory(false);
+    setLastQuery('');
+    setInput('');
+
+    // If thread has repository info, load it
+    if (thread.repository) {
+      const loadRepositoryData = async () => {
+        try {
+          setIsLoadingRepo(true);
+          const response = await fetch(`/api/repositories?url=${encodeURIComponent(`https://github.com/${thread.repository}`)}`);
+          const data = await response.json();
+          
+          if (response.ok) {
+            setRepositoryData(data);
+            setRepositoryUrl(`https://github.com/${thread.repository}`);
+          }
+        } catch (error) {
+          console.error('Error loading repository data for thread:', error);
+        } finally {
+          setIsLoadingRepo(false);
+        }
+      };
+      
+      loadRepositoryData();
+    }
+  }, [thread.id, thread.repository]);
 
   // Save messages when they change
   useEffect(() => {
@@ -99,7 +139,23 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
 
     } catch (error) {
       console.error('Error fetching repository:', error);
-      setRepoError(error instanceof Error ? error.message : 'Failed to fetch repository information');
+      
+      let errorMessage = 'Failed to fetch repository information';
+      if (error instanceof Error) {
+        if (error.message.includes('404') || error.message.includes('not found')) {
+          errorMessage = '🔍 Repository not found or not accessible. Please check the URL and your permissions.';
+        } else if (error.message.includes('403') || error.message.includes('forbidden')) {
+          errorMessage = '🚫 Access forbidden. You may need to authenticate or the repository might be private.';
+        } else if (error.message.includes('rate limit')) {
+          errorMessage = '⏱️ GitHub API rate limit exceeded. Please wait a few minutes before trying again.';
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = '🌐 Network error. Please check your internet connection and try again.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      setRepoError(errorMessage);
     } finally {
       setIsLoadingRepo(false);
     }
@@ -122,8 +178,10 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
     };
 
     setMessages(prev => [...prev, userMessage]);
+    setLastQuery(input.trim());
     setInput('');
     setIsLoading(true);
+    setQueryError('');
 
     // Update thread with last message
     onUpdateThread({
@@ -147,7 +205,22 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to process query');
+        // Handle specific error types with better user messaging
+        let errorMessage = data.error || 'Failed to process query';
+        
+        if (response.status === 429) {
+          errorMessage = '⏱️ **Rate limit exceeded**\n\nToo many requests. Please wait a few minutes before trying again. Authenticated users have higher rate limits.';
+        } else if (response.status === 401) {
+          errorMessage = '🔐 **Authentication required**\n\nPlease sign in again to continue using the service.';
+        } else if (response.status === 403) {
+          errorMessage = '🚫 **Access forbidden**\n\nYou don\'t have permission to access this repository. Make sure the repository is public or you have the necessary permissions.';
+        } else if (response.status === 404) {
+          errorMessage = '🔍 **Repository not found**\n\nThe repository doesn\'t exist or has been moved. Please check the repository URL.';
+        } else if (response.status >= 500) {
+          errorMessage = '🔧 **Server error**\n\nOur servers are experiencing issues. Please try again in a few minutes.';
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const assistantMessage: Message = {
@@ -159,19 +232,32 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-      setIsLoading(false);
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      let errorContent = '';
+      if (error instanceof Error) {
+        // Check for network errors
+        if (error.message.includes('fetch') || error.name === 'TypeError') {
+          errorContent = '🌐 **Network error**\n\nPlease check your internet connection and try again.';
+        } else {
+          errorContent = error.message;
+        }
+      } else {
+        errorContent = '❌ **Unexpected error**\n\nSomething went wrong. Please try again.';
+      }
       
       const errorMessage: Message = {
         id: `msg-${Date.now() + 1}`,
         role: 'assistant',
-        content: `❌ Error: ${error instanceof Error ? error.message : 'Failed to process your question'}. Please try again.`,
+        content: errorContent,
         timestamp: new Date(),
         repository: thread.repository,
       };
 
       setMessages(prev => [...prev, errorMessage]);
+      setQueryError(errorContent);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -183,8 +269,13 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
     }
   };
 
+  const handleClearHistory = () => {
+    setMessages([]);
+    localStorage.removeItem(`messages-${thread.id}`);
+  };
+
   return (
-    <div className="flex flex-col h-full bg-gray-900">
+    <div className="flex flex-col h-full bg-gray-900 relative">
       {/* Repository Setup */}
       {!thread.repository && (
         <div className="bg-gray-800 border-b border-gray-700 p-6">
@@ -197,6 +288,31 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
             isLoading={isLoadingRepo}
             error={repoError}
           />
+          {isLoadingRepo && (
+            <div className="mt-4 flex items-center justify-center">
+              <div className="bg-gray-700 text-gray-100 px-4 py-3 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent"></div>
+                  <div>
+                    <div className="font-medium">Loading repository...</div>
+                    <div className="text-sm text-gray-400">Fetching repository information</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {repoError && (
+            <div className="mt-4">
+              <ErrorDisplay
+                error={repoError}
+                onRetry={() => {
+                  setRepoError('');
+                  // Could implement retry logic here if needed
+                }}
+                onDismiss={() => setRepoError('')}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -264,8 +380,8 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
             >
               <div
                 className={`max-w-4xl px-4 py-3 rounded-lg ${message.role === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-100'
+                  ? 'bg-gray-600 text-white border border-gray-500'
+                  : 'bg-gray-700 text-gray-100 border border-gray-600'
                   }`}
               >
                 {message.role === 'user' ? (
@@ -283,10 +399,18 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
 
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-gray-700 text-gray-100 px-4 py-2 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-400"></div>
-                <span>Thinking...</span>
+            <div className="bg-gray-700 text-gray-100 px-4 py-3 rounded-lg max-w-md">
+              <div className="flex items-center space-x-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent"></div>
+                <div>
+                  <div className="font-medium">Analyzing repository...</div>
+                  <div className="text-sm text-gray-400 mt-1">
+                    Gathering code insights and generating response
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 bg-gray-600 rounded-full h-1">
+                <div className="bg-gray-300 h-1 rounded-full animate-pulse" style={{ width: '60%' }}></div>
               </div>
             </div>
           </div>
@@ -316,6 +440,70 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
           </div>
         )}
 
+        {queryError && (
+          <div className="mb-3">
+            <ErrorDisplay
+              error={queryError}
+              onRetry={() => {
+                setQueryError('');
+                if (lastQuery) {
+                  setInput(lastQuery);
+                  // Auto-retry the last query
+                  setTimeout(() => {
+                    if (lastQuery) {
+                      const userMessage: Message = {
+                        id: `msg-${Date.now()}`,
+                        role: 'user',
+                        content: lastQuery,
+                        timestamp: new Date(),
+                        repository: thread.repository,
+                      };
+                      setMessages(prev => [...prev, userMessage]);
+                      setInput('');
+                      setIsLoading(true);
+                      
+                      // Retry the API call
+                      fetch('/api/query', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          repositoryUrl: `https://github.com/${thread.repository}`,
+                          query: lastQuery,
+                        }),
+                      })
+                      .then(async response => {
+                        const data = await response.json();
+                        if (!response.ok) throw new Error(data.error || 'Failed to process query');
+                        
+                        const assistantMessage: Message = {
+                          id: `msg-${Date.now() + 1}`,
+                          role: 'assistant',
+                          content: data.response || 'No response generated',
+                          timestamp: new Date(),
+                          repository: thread.repository,
+                        };
+                        setMessages(prev => [...prev, assistantMessage]);
+                      })
+                      .catch(error => {
+                        const errorMessage: Message = {
+                          id: `msg-${Date.now() + 1}`,
+                          role: 'assistant',
+                          content: `❌ Retry failed: ${error.message}`,
+                          timestamp: new Date(),
+                          repository: thread.repository,
+                        };
+                        setMessages(prev => [...prev, errorMessage]);
+                      })
+                      .finally(() => setIsLoading(false));
+                    }
+                  }, 100);
+                }
+              }}
+              onDismiss={() => setQueryError('')}
+            />
+          </div>
+        )}
+
         <div className="flex space-x-3">
           <textarea
             value={input}
@@ -335,7 +523,7 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
           <button
             onClick={handleSendMessage}
             disabled={!input.trim() || !thread.repository || !llmConfigured || isLoading}
-            className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-md font-medium transition-colors self-end"
+            className="bg-gray-600 hover:bg-gray-500 disabled:bg-gray-700 text-white px-4 py-2 rounded-md font-medium transition-colors self-end"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -343,6 +531,22 @@ export function ChatWindow({ thread, onUpdateThread, llmConfigured, onShowLLMSet
           </button>
         </div>
       </div>
+
+      {/* Conversation History Sidebar */}
+      <ConversationHistory
+        messages={messages}
+        onClearHistory={handleClearHistory}
+        isVisible={showHistory}
+        onToggle={() => setShowHistory(!showHistory)}
+      />
+
+      {/* Overlay when history is open */}
+      {showHistory && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={() => setShowHistory(false)}
+        />
+      )}
     </div>
   );
 }
