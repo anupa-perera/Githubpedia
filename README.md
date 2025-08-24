@@ -4,7 +4,7 @@ A Next.js application that provides an intelligent interface for exploring GitHu
 
 ## 🚀 Live Demo
 
-**Production URL**: https://githubpedia-hjlymty9g-anupaxtream-5314s-projects.vercel.app
+**Production URL**: https://githubpedia.vercel.app/
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
