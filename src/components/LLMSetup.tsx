@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { LLMProvider, PROVIDER_CONFIGS, OpenRouterModel } from '@/types/llm';
+import { LLMProvider, PROVIDER_CONFIGS, LLMModel, OpenRouterModel, AnthropicModel } from '@/types/llm';
 
 interface LLMSetupProps {
   onComplete: () => void;
@@ -15,46 +15,110 @@ interface LLMConfig {
   baseUrl?: string;
 }
 
+// Helper function to get model display name
+function getModelDisplayName(model: LLMModel, provider: LLMProvider): string {
+  if (provider === 'openrouter' && 'pricing' in model) {
+    const openRouterModel = model as OpenRouterModel;
+    return `${openRouterModel.name} - $${openRouterModel.pricing.prompt}/1K tokens`;
+  }
+  if (provider === 'anthropic' && 'display_name' in model) {
+    const anthropicModel = model as AnthropicModel;
+    return anthropicModel.display_name;
+  }
+  return model.name || model.id;
+}
+
 export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
   const [config, setConfig] = useState<LLMConfig>({
     provider: 'openai',
     apiKey: '',
     model: PROVIDER_CONFIGS.openai.defaultModel,
   });
-  const [openRouterModels, setOpenRouterModels] = useState<OpenRouterModel[]>([]);
+  const [dynamicModels, setDynamicModels] = useState<LLMModel[]>([]);
   const [isValidating, setIsValidating] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const [isKeyValid, setIsKeyValid] = useState(false);
   const [error, setError] = useState('');
 
-  const fetchOpenRouterModels = useCallback(async () => {
-    if (!config.apiKey) return;
+  const validateApiKeyAndFetchModels = useCallback(async () => {
+    if (!config.apiKey || config.apiKey.length < 10) {
+      setIsKeyValid(false);
+      setDynamicModels([]);
+      return;
+    }
     
-    setIsLoadingModels(true);
+    setIsValidating(true);
+    setError('');
+    
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/models', {
+      // First validate the API key
+      const validateResponse = await fetch('/api/llm-setup', {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${config.apiKey}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ 
+          provider: config.provider, 
+          apiKey: config.apiKey,
+          model: config.model 
+        }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setOpenRouterModels(data.data || []);
-      }
-    } catch (error) {
-      console.error('Failed to fetch OpenRouter models:', error);
-    } finally {
-      setIsLoadingModels(false);
-    }
-  }, [config.apiKey]);
+      const validateData = await validateResponse.json();
+      
+      if (validateData.keyValid) {
+        setIsKeyValid(true);
+        setIsLoadingModels(true);
+        
+        // If validation successful, fetch models
+        const modelsResponse = await fetch('/api/llm-setup/models', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            provider: config.provider, 
+            apiKey: config.apiKey
+          }),
+        });
 
-  // Fetch OpenRouter models when API key is provided
-  useEffect(() => {
-    if (config.provider === 'openrouter' && config.apiKey && config.apiKey.length > 10) {
-      fetchOpenRouterModels();
+        if (modelsResponse.ok) {
+          const modelsData: { success: boolean; models?: LLMModel[]; provider?: string; error?: string } = await modelsResponse.json();
+          if (modelsData.success && modelsData.models) {
+            setDynamicModels(modelsData.models);
+            
+            // If the current model is not in the fetched models, set to first available
+            if (modelsData.models && modelsData.models.length > 0 && !modelsData.models.find((m: LLMModel) => m.id === config.model)) {
+              setConfig(prev => ({ ...prev, model: modelsData.models![0].id }));
+            }
+          }
+        }
+        setIsLoadingModels(false);
+      } else {
+        setIsKeyValid(false);
+        setDynamicModels([]);
+        setError(validateData.error || 'Invalid API key');
+      }
+    } catch {
+      console.error(`Failed to validate ${config.provider} API key`);
+      setIsKeyValid(false);
+      setDynamicModels([]);
+      setError('Failed to validate API key. Please check your network connection.');
+    } finally {
+      setIsValidating(false);
     }
-  }, [config.provider, config.apiKey, fetchOpenRouterModels]);
+  }, [config.apiKey, config.provider, config.model]);
+
+  // Validate API key and fetch models when API key is provided
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (config.apiKey && config.apiKey.length > 10) {
+        validateApiKeyAndFetchModels();
+      }
+    }, 1000); // Add 1 second delay to avoid too many API calls while typing
+    
+    return () => clearTimeout(timeoutId);
+  }, [config.provider, config.apiKey, validateApiKeyAndFetchModels]);
 
   const handleProviderChange = (provider: LLMProvider) => {
     setConfig({
@@ -63,7 +127,8 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
       model: PROVIDER_CONFIGS[provider].defaultModel,
       baseUrl: provider === 'openrouter' ? PROVIDER_CONFIGS.openrouter.baseUrl : undefined,
     });
-    setOpenRouterModels([]);
+    setDynamicModels([]);
+    setIsKeyValid(false);
     setError('');
   };
 
@@ -92,7 +157,7 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
       } else {
         setError(result.error || 'Configuration failed');
       }
-    } catch (error) {
+    } catch {
       setError('Network error. Please try again.');
     } finally {
       setIsValidating(false);
@@ -175,56 +240,61 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
             />
           </div>
 
-          {/* Model Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Model
-            </label>
-            {config.provider === 'openrouter' && openRouterModels.length > 0 ? (
-              <select
-                value={config.model}
-                onChange={(e) => setConfig(prev => ({ ...prev, model: e.target.value }))}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {openRouterModels.map((model) => (
-                  <option key={model.id} value={model.id}>
-                    {model.name} - ${model.pricing.prompt}/1K tokens
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <select
-                value={config.model}
-                onChange={(e) => setConfig(prev => ({ ...prev, model: e.target.value }))}
-                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {currentProvider.models.map((model) => (
-                  <option key={model} value={model}>
-                    {model}
-                  </option>
-                ))}
-              </select>
-            )}
-            {config.provider === 'openrouter' && isLoadingModels && (
-              <p className="mt-1 text-sm text-gray-600">Loading available models...</p>
-            )}
-          </div>
-
-          {/* OpenRouter Base URL */}
-          {config.provider === 'openrouter' && (
+          {/* API Key Status */}
+          {config.apiKey.length > 10 && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Base URL
-              </label>
-              <input
-                type="text"
-                value={config.baseUrl || ''}
-                onChange={(e) => setConfig(prev => ({ ...prev, baseUrl: e.target.value }))}
-                className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                readOnly
-              />
+              {isValidating && (
+                <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span className="text-blue-700">Validating API key...</span>
+                  </div>
+                </div>
+              )}
+              
+              {!isValidating && isKeyValid && (
+                <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                  <div className="flex items-center space-x-2">
+                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-green-700">API key validated successfully</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
+
+          {/* Model Selection - Only show if API key is valid */}
+          {isKeyValid && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Model
+              </label>
+              <select
+                value={config.model}
+                onChange={(e) => setConfig(prev => ({ ...prev, model: e.target.value }))}
+                disabled={isLoadingModels || dynamicModels.length === 0}
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              >
+                {dynamicModels.length > 0 ? (
+                  dynamicModels.map((model) => (
+                    <option key={model.id} value={model.id}>
+                      {getModelDisplayName(model, config.provider)}
+                    </option>
+                  ))
+                ) : (
+                  <option value={config.model}>
+                    {isLoadingModels ? 'Loading models...' : 'No models available'}
+                  </option>
+                )}
+              </select>
+              {isLoadingModels && (
+                <p className="mt-1 text-sm text-gray-600">Loading available models...</p>
+              )}
+            </div>
+          )}
+
 
           {/* Error Message */}
           {error && (
@@ -248,7 +318,7 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
             </button>
             <button
               onClick={validateAndSave}
-              disabled={!config.apiKey.trim() || isValidating}
+              disabled={!config.apiKey.trim() || isValidating || !isKeyValid || !config.model}
               className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-md font-medium transition-colors flex items-center justify-center"
             >
               {isValidating ? (

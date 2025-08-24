@@ -1,6 +1,5 @@
 import OpenAI from 'openai';
-import Anthropic from '@anthropic-ai/sdk';
-import { LLMProvider, OpenRouterModel, PROVIDER_CONFIGS } from '@/types/llm';
+import { LLMProvider, OpenRouterModel, OpenAIModel, AnthropicModel, PROVIDER_CONFIGS } from '@/types/llm';
 
 export async function validateApiKey(provider: LLMProvider, apiKey: string): Promise<boolean> {
   try {
@@ -25,28 +24,23 @@ async function validateOpenAIKey(apiKey: string): Promise<boolean> {
     const openai = new OpenAI({ apiKey });
     await openai.models.list();
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
 
 async function validateAnthropicKey(apiKey: string): Promise<boolean> {
   try {
-    const anthropic = new Anthropic({ apiKey });
-    // Make a minimal request to validate the key
-    await anthropic.messages.create({
-      model: 'claude-3-haiku-20240307',
-      max_tokens: 1,
-      messages: [{ role: 'user', content: 'test' }],
+    const response = await fetch('https://api.anthropic.com/v1/models', {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01'
+      },
     });
-    return true;
-  } catch (error: unknown) {
-    // Check if it's an authentication error vs other errors
-    if (error instanceof Error && error.message.includes('authentication')) {
-      return false;
-    }
-    // If it's not an auth error, the key might be valid but there's another issue
-    return true;
+    return response.ok;
+  } catch {
+    return false;
   }
 }
 
@@ -59,8 +53,56 @@ async function validateOpenRouterKey(apiKey: string): Promise<boolean> {
       },
     });
     return response.ok;
-  } catch (error) {
+  } catch {
     return false;
+  }
+}
+
+export async function fetchOpenAIModels(apiKey: string): Promise<OpenAIModel[]> {
+  try {
+    const openai = new OpenAI({ apiKey });
+    const models = await openai.models.list();
+    
+    // Filter for GPT models and sort by creation date
+    const gptModels = models.data
+      .filter(model => model.id.includes('gpt'))
+      .sort((a, b) => b.created - a.created)
+      .map(model => ({
+        id: model.id,
+        name: model.id,
+        description: `OpenAI ${model.id}`,
+        created: model.created,
+        owned_by: model.owned_by
+      }));
+    
+    return gptModels;
+  } catch (error) {
+    console.error('Failed to fetch OpenAI models:', error);
+    return [];
+  }
+}
+
+export async function fetchAnthropicModels(apiKey: string): Promise<AnthropicModel[]> {
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/models', {
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01'
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch Anthropic models');
+    }
+
+    const data = await response.json();
+    
+    // The API returns { data: [...models] }
+    return data.data || [];
+  } catch (error) {
+    console.error('Failed to fetch Anthropic models:', error);
+    return [];
   }
 }
 

@@ -5,6 +5,8 @@ import {
   validateApiKey, 
   validateApiKeyFormat, 
   fetchOpenRouterModels,
+  fetchOpenAIModels,
+  fetchAnthropicModels,
   getDefaultModel 
 } from '@/services/llmService';
 import { encryptApiKey } from '@/utils/encryption';
@@ -56,10 +58,18 @@ export async function POST(request: NextRequest) {
       } as LLMSetupResponse);
     }
 
-    // For OpenRouter, fetch available models
+    // Fetch available models for all providers
     let availableModels;
-    if (provider === 'openrouter') {
-      availableModels = await fetchOpenRouterModels(apiKey);
+    switch (provider) {
+      case 'openai':
+        availableModels = await fetchOpenAIModels(apiKey);
+        break;
+      case 'anthropic':
+        availableModels = await fetchAnthropicModels(apiKey);
+        break;
+      case 'openrouter':
+        availableModels = await fetchOpenRouterModels(apiKey);
+        break;
     }
 
     // Encrypt the API key

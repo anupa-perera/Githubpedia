@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/utils/auth';
-import { LLMProvider, PROVIDER_CONFIGS } from '@/types/llm';
+// Removed unused imports
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,15 +21,6 @@ export async function POST(request: NextRequest) {
     if (!['openai', 'anthropic', 'openrouter'].includes(provider)) {
       return NextResponse.json(
         { error: 'Invalid provider' },
-        { status: 400 }
-      );
-    }
-
-    // Validate model for the provider
-    const providerConfig = PROVIDER_CONFIGS[provider as LLMProvider];
-    if (provider !== 'openrouter' && !providerConfig.models.includes(model)) {
-      return NextResponse.json(
-        { error: 'Invalid model for provider' },
         { status: 400 }
       );
     }
