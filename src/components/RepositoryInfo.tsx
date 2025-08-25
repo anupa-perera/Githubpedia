@@ -30,12 +30,12 @@ export function RepositoryInfo({ repository }: RepositoryInfoProps) {
           className="w-6 h-6 rounded-full"
         />
         <div>
-          <h2 className="text-sm font-semibold text-white">
+          <h2 className="text-sm font-semibold text-gray-900">
             <a
               href={repository.html_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-blue-400 transition-colors"
+              className="hover:text-blue-600 transition-colors"
             >
               {repository.full_name}
             </a>
@@ -44,7 +44,7 @@ export function RepositoryInfo({ repository }: RepositoryInfoProps) {
       </div>
 
       {/* Compact Stats */}
-      <div className="flex items-center space-x-4 text-xs text-gray-400">
+      <div className="flex items-center space-x-4 text-xs text-gray-600">
         {repository.stargazers_count !== undefined && (
           <div className="flex items-center space-x-1">
             <svg
@@ -77,7 +77,7 @@ export function RepositoryInfo({ repository }: RepositoryInfoProps) {
 
         {repository.language && (
           <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
             <span>{repository.language}</span>
           </div>
         )}

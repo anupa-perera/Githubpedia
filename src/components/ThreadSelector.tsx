@@ -60,17 +60,17 @@ export function ThreadSelector({
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-800">
+    <div className="h-full flex flex-col bg-white">
       {/* Slot Machine Header */}
-      <div className="p-4 border-b border-gray-700">
+      <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-white">Conversations</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Conversations</h2>
           <div className="flex space-x-2">
             {/* Spin Button - Slot Machine Style */}
             <button
               onClick={handleSpin}
               disabled={threads.length === 0 || isSpinning}
-              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 disabled:from-gray-600 disabled:to-gray-700 text-white p-2 rounded-full transition-all duration-200 transform hover:scale-105 disabled:scale-100"
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 disabled:from-gray-300 disabled:to-gray-400 text-white p-2 rounded-full transition-all duration-200 transform hover:scale-105 disabled:scale-100"
               title="Random thread (Slot Machine)"
             >
               <svg
@@ -91,7 +91,7 @@ export function ThreadSelector({
             {/* New Thread Button */}
             <button
               onClick={onCreateThread}
-              className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-full transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-colors"
               title="New conversation"
             >
               <svg
@@ -112,7 +112,7 @@ export function ThreadSelector({
         </div>
 
         {/* Slot Machine Display */}
-        <div className="bg-gray-900 rounded-lg p-3 border-2 border-yellow-500">
+        <div className="bg-gray-50 rounded-lg p-3 border-2 border-yellow-400">
           <div className="flex items-center justify-center space-x-2">
             <div className="flex space-x-1">
               {[...Array(3)].map((_, i) => (
@@ -120,15 +120,15 @@ export function ThreadSelector({
                   key={i}
                   className={`w-3 h-3 rounded-full ${
                     isSpinning
-                      ? 'bg-yellow-400 animate-pulse'
+                      ? 'bg-yellow-500 animate-pulse'
                       : activeThreadId
-                        ? 'bg-green-400'
-                        : 'bg-gray-600'
+                        ? 'bg-blue-500'
+                        : 'bg-gray-300'
                   }`}
                 />
               ))}
             </div>
-            <span className="text-yellow-400 text-sm font-mono">
+            <span className="text-yellow-600 text-sm font-mono">
               {isSpinning
                 ? 'SPINNING...'
                 : activeThreadId
@@ -142,16 +142,16 @@ export function ThreadSelector({
       {/* Thread List - Scrollable like slot machine reels */}
       <div
         ref={scrollRef}
-        className={`flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 ${
+        className={`flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 ${
           isSpinning ? 'animate-pulse' : ''
         }`}
       >
         {threads.length === 0 ? (
           <div className="p-4 text-center">
-            <div className="text-gray-400 mb-2">No conversations yet</div>
+            <div className="text-gray-600 mb-2">No conversations yet</div>
             <button
               onClick={onCreateThread}
-              className="text-green-400 hover:text-green-300 text-sm underline"
+              className="text-blue-600 hover:text-blue-700 text-sm underline"
             >
               Start your first conversation
             </button>
@@ -164,8 +164,8 @@ export function ThreadSelector({
                 data-thread-id={thread.id}
                 className={`group relative p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                   activeThreadId === thread.id
-                    ? 'bg-green-600 text-white shadow-lg transform scale-105'
-                    : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                    ? 'bg-blue-600 text-white shadow-lg transform scale-105'
+                    : 'bg-gray-50 hover:bg-gray-100 text-gray-800 border border-gray-200'
                 } ${isSpinning ? 'animate-bounce' : ''}`}
                 onClick={() => onSelectThread(thread.id)}
               >
@@ -228,7 +228,7 @@ export function ThreadSelector({
 
                 {/* Active Thread Indicator */}
                 {activeThreadId === thread.id && (
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400 rounded-r"></div>
+                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-yellow-500 rounded-r"></div>
                 )}
               </div>
             ))}
@@ -237,8 +237,8 @@ export function ThreadSelector({
       </div>
 
       {/* Slot Machine Footer */}
-      <div className="p-3 border-t border-gray-700 bg-gray-900">
-        <div className="text-center text-xs text-gray-400">
+      <div className="p-3 border-t border-gray-200 bg-gray-50">
+        <div className="text-center text-xs text-gray-600">
           🎰 {threads.length} conversations loaded
         </div>
       </div>

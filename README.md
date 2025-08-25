@@ -54,7 +54,7 @@ npm run deploy
 Before deploying, ensure you have these environment variables configured:
 
 - `GITHUB_TOKEN` - GitHub Personal Access Token
-- `GITHUB_CLIENT_ID` - GitHub OAuth App Client ID  
+- `GITHUB_CLIENT_ID` - GitHub OAuth App Client ID
 - `GITHUB_CLIENT_SECRET` - GitHub OAuth App Client Secret
 - `NEXTAUTH_SECRET` - NextAuth secret key
 - `NEXTAUTH_URL` - Your production URL

@@ -306,15 +306,15 @@ export function ChatWindow({
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 relative">
+    <div className="flex flex-col h-full bg-gray-50 relative">
       {/* Repository Setup */}
       {!thread.repository && (
-        <div className="bg-gray-800 border-b border-gray-700 p-6">
+        <div className="bg-white border-b border-gray-200 p-6">
           <div className="text-center mb-6">
-            <h2 className="text-xl font-bold text-white mb-2">
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
               Explore a GitHub Repository
             </h2>
-            <p className="text-gray-400">
+            <p className="text-gray-600">
               Enter a GitHub repository URL to start exploring and asking
               questions
             </p>
@@ -326,12 +326,12 @@ export function ChatWindow({
           />
           {isLoadingRepo && (
             <div className="mt-4 flex items-center justify-center">
-              <div className="bg-gray-700 text-gray-100 px-4 py-3 rounded-lg">
+              <div className="bg-gray-100 text-gray-900 px-4 py-3 rounded-lg border">
                 <div className="flex items-center space-x-3">
-                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-blue-600"></div>
                   <div>
                     <div className="font-medium">Loading repository...</div>
-                    <div className="text-sm text-gray-400">
+                    <div className="text-sm text-gray-600">
                       Fetching repository information
                     </div>
                   </div>
@@ -356,7 +356,7 @@ export function ChatWindow({
 
       {/* Repository Info - Compact */}
       {thread.repository && repositoryData && (
-        <div className="bg-gray-800 border-b border-gray-700 px-4 py-2">
+        <div className="bg-white border-b border-gray-200 px-4 py-2">
           <RepositoryInfo repository={repositoryData} />
           <div className="text-center mt-1">
             <button
@@ -369,7 +369,7 @@ export function ChatWindow({
                 setRepositoryData(null);
                 setRepositoryUrl('');
               }}
-              className="text-gray-500 hover:text-gray-300 text-xs underline"
+              className="text-gray-500 hover:text-gray-700 text-xs underline"
             >
               Change Repository
             </button>
@@ -379,9 +379,9 @@ export function ChatWindow({
 
       {/* Fallback for repository without detailed data */}
       {thread.repository && !repositoryData && (
-        <div className="bg-gray-800 border-b border-gray-700 px-4 py-2">
+        <div className="bg-white border-b border-gray-200 px-4 py-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 text-green-400">
+            <div className="flex items-center space-x-2 text-gray-800">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -401,7 +401,7 @@ export function ChatWindow({
                 setRepositoryData(null);
                 setRepositoryUrl('');
               }}
-              className="text-gray-400 hover:text-white text-sm"
+              className="text-gray-500 hover:text-gray-700 text-sm"
             >
               Change Repository
             </button>
@@ -412,10 +412,10 @@ export function ChatWindow({
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
-          <div className="text-center text-gray-400 mt-8">
-            <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="text-center text-gray-600 mt-8">
+            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
-                className="w-8 h-8"
+                className="w-8 h-8 text-gray-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -441,8 +441,8 @@ export function ChatWindow({
               <div
                 className={`max-w-4xl px-4 py-3 rounded-lg ${
                   message.role === 'user'
-                    ? 'bg-gray-600 text-white border border-gray-500'
-                    : 'bg-gray-700 text-gray-100 border border-gray-600'
+                    ? 'bg-blue-600 text-white border border-blue-500'
+                    : 'bg-white text-gray-900 border border-gray-200 shadow-sm'
                 }`}
               >
                 {message.role === 'user' ? (
@@ -460,19 +460,19 @@ export function ChatWindow({
 
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-gray-700 text-gray-100 px-4 py-3 rounded-lg max-w-md">
+            <div className="bg-white text-gray-900 px-4 py-3 rounded-lg max-w-md border border-gray-200 shadow-sm">
               <div className="flex items-center space-x-3">
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-blue-600"></div>
                 <div>
                   <div className="font-medium">Analyzing repository...</div>
-                  <div className="text-sm text-gray-400 mt-1">
+                  <div className="text-sm text-gray-600 mt-1">
                     Gathering code insights and generating response
                   </div>
                 </div>
               </div>
-              <div className="mt-3 bg-gray-600 rounded-full h-1">
+              <div className="mt-3 bg-gray-200 rounded-full h-1">
                 <div
-                  className="bg-gray-300 h-1 rounded-full animate-pulse"
+                  className="bg-blue-600 h-1 rounded-full animate-pulse"
                   style={{ width: '60%' }}
                 ></div>
               </div>
@@ -484,13 +484,13 @@ export function ChatWindow({
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-gray-700 p-4">
+      <div className="border-t border-gray-200 p-4 bg-white">
         {!llmConfigured && (
-          <div className="bg-yellow-900 border border-yellow-700 rounded-md p-3 mb-3">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3 mb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <svg
-                  className="w-5 h-5 text-yellow-400"
+                  className="w-5 h-5 text-yellow-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -502,13 +502,13 @@ export function ChatWindow({
                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
                   />
                 </svg>
-                <span className="text-yellow-200 text-sm">
+                <span className="text-yellow-800 text-sm">
                   AI provider not configured
                 </span>
               </div>
               <button
                 onClick={onShowLLMSetup}
-                className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
+                className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
               >
                 Setup Now
               </button>
@@ -596,7 +596,7 @@ export function ChatWindow({
                   : 'Ask a question about the repository...'
             }
             disabled={!thread.repository || !llmConfigured}
-            className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
             rows={3}
           />
           <button
@@ -604,7 +604,7 @@ export function ChatWindow({
             disabled={
               !input.trim() || !thread.repository || !llmConfigured || isLoading
             }
-            className="bg-gray-600 hover:bg-gray-500 disabled:bg-gray-700 text-white px-4 py-2 rounded-md font-medium transition-colors self-end"
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-md font-medium transition-colors self-end"
           >
             <svg
               className="w-5 h-5"

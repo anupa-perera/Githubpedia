@@ -195,15 +195,15 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
       {/* Current Config Display */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-md text-sm transition-colors"
+        className="flex items-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-300 px-3 py-2 rounded-md text-sm transition-colors"
       >
         <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
           <span className="font-medium">
             {PROVIDER_CONFIGS[currentConfig.provider].name}
           </span>
-          <span className="text-gray-300">•</span>
-          <span className="text-gray-300 truncate max-w-32">
+          <span className="text-gray-500">•</span>
+          <span className="text-gray-600 truncate max-w-32">
             {currentConfig.model}
           </span>
         </div>
@@ -224,15 +224,15 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
 
       {/* Dropdown Panel */}
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
+        <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
           <div className="p-4">
-            <h3 className="text-white font-medium mb-4">
+            <h3 className="text-gray-900 font-medium mb-4">
               Switch AI Provider & Model
             </h3>
 
             {/* Provider Selection */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-200 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Provider
               </label>
               <select
@@ -240,7 +240,7 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
                 onChange={e =>
                   handleProviderChange(e.target.value as LLMProvider)
                 }
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {Object.entries(PROVIDER_CONFIGS).map(([key, config]) => (
                   <option key={key} value={key}>
@@ -252,13 +252,13 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
 
             {/* Model Selection */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-200 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Model
               </label>
               <select
                 value={selectedModel}
                 onChange={e => handleModelChange(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isLoadingModels}
               >
                 {getAvailableModels().map(model => (
@@ -271,7 +271,7 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
                 ))}
               </select>
               {isLoadingModels && (
-                <p className="mt-1 text-sm text-gray-400">Loading models...</p>
+                <p className="mt-1 text-sm text-gray-600">Loading models...</p>
               )}
             </div>
 
@@ -279,7 +279,7 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
             <div className="flex space-x-2">
               <button
                 onClick={() => setIsOpen(false)}
-                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-3 rounded-md text-sm transition-colors"
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 py-2 px-3 rounded-md text-sm transition-colors"
               >
                 Cancel
               </button>
@@ -290,7 +290,7 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
                   (selectedProvider === currentConfig.provider &&
                     selectedModel === currentConfig.model)
                 }
-                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white py-2 px-3 rounded-md text-sm transition-colors flex items-center justify-center"
+                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 text-white py-2 px-3 rounded-md text-sm transition-colors flex items-center justify-center"
               >
                 {isUpdating ? (
                   <>
