@@ -7,30 +7,60 @@ interface ErrorDisplayProps {
   type?: 'error' | 'warning' | 'info';
 }
 
-export function ErrorDisplay({ 
-  error, 
-  onRetry, 
-  onDismiss, 
-  type = 'error' 
+export function ErrorDisplay({
+  error,
+  onRetry,
+  onDismiss,
+  type = 'error',
 }: ErrorDisplayProps) {
   const getErrorIcon = () => {
     switch (type) {
       case 'warning':
         return (
-          <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          <svg
+            className="w-5 h-5 text-yellow-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+            />
           </svg>
         );
       case 'info':
         return (
-          <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-5 h-5 text-blue-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         );
       default:
         return (
-          <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-5 h-5 text-red-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         );
     }
@@ -59,15 +89,13 @@ export function ErrorDisplay({
   };
 
   return (
-    <div className={`${getBackgroundColor()} border ${getBorderColor()} rounded-md p-4 mb-4`}>
+    <div
+      className={`${getBackgroundColor()} border ${getBorderColor()} rounded-md p-4 mb-4`}
+    >
       <div className="flex items-start space-x-3">
-        <div className="flex-shrink-0">
-          {getErrorIcon()}
-        </div>
+        <div className="flex-shrink-0">{getErrorIcon()}</div>
         <div className="flex-1">
-          <div className="text-sm text-white whitespace-pre-wrap">
-            {error}
-          </div>
+          <div className="text-sm text-white whitespace-pre-wrap">{error}</div>
           {(onRetry || onDismiss) && (
             <div className="mt-3 flex space-x-2">
               {onRetry && (
@@ -94,8 +122,18 @@ export function ErrorDisplay({
             onClick={onDismiss}
             className="flex-shrink-0 text-gray-400 hover:text-white transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         )}

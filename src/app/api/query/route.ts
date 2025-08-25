@@ -1,15 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/utils/auth';
-import { QueryRequest, QueryResponse } from '@/types/query';
-import { parseGitHubUrl } from '@/utils/githubUtils';
+import { NextRequest, NextResponse } from 'next/server';
+
 import { processQuery } from '@/services/queryService';
+import { QueryRequest, QueryResponse } from '@/types/query';
+import { authOptions } from '@/utils/auth';
 import { decryptApiKey } from '@/utils/encryption';
+import { parseGitHubUrl } from '@/utils/githubUtils';
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user || !session.accessToken) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -41,7 +42,10 @@ export async function POST(request: NextRequest) {
     const llmConfigCookie = request.cookies.get('llm-config');
     if (!llmConfigCookie) {
       return NextResponse.json(
-        { error: 'LLM configuration required. Please configure your AI provider first.' },
+        {
+          error:
+            'LLM configuration required. Please configure your AI provider first.',
+        },
         { status: 400 }
       );
     }
@@ -53,7 +57,10 @@ export async function POST(request: NextRequest) {
       llmConfig.apiKey = decryptApiKey(llmConfig.encryptedApiKey);
     } catch {
       return NextResponse.json(
-        { error: 'Invalid LLM configuration. Please reconfigure your AI provider.' },
+        {
+          error:
+            'Invalid LLM configuration. Please reconfigure your AI provider.',
+        },
         { status: 400 }
       );
     }
@@ -66,24 +73,20 @@ export async function POST(request: NextRequest) {
       repository: repoInfo,
       query,
       githubToken,
-      llmConfig
+      llmConfig,
     });
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: result.error }, { status: 500 });
     }
 
     const response: QueryResponse = {
       response: result.response || 'No response generated',
       sources: result.sources || [],
-      codeReferences: result.codeReferences || []
+      codeReferences: result.codeReferences || [],
     };
 
     return NextResponse.json(response);
-
   } catch (error) {
     console.error('Query processing error:', error);
     return NextResponse.json(

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { LLMProvider, PROVIDER_CONFIGS, OpenRouterModel } from '@/types/llm';
+import { useCallback, useEffect, useState } from 'react';
+
+import { LLMProvider, OpenRouterModel, PROVIDER_CONFIGS } from '@/types/llm';
 
 interface LLMSetupProps {
   onComplete: () => void;
@@ -21,19 +22,21 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
     apiKey: '',
     model: PROVIDER_CONFIGS.openai.defaultModel,
   });
-  const [openRouterModels, setOpenRouterModels] = useState<OpenRouterModel[]>([]);
+  const [openRouterModels, setOpenRouterModels] = useState<OpenRouterModel[]>(
+    []
+  );
   const [isValidating, setIsValidating] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [error, setError] = useState('');
 
   const fetchOpenRouterModels = useCallback(async () => {
     if (!config.apiKey) return;
-    
+
     setIsLoadingModels(true);
     try {
       const response = await fetch('https://openrouter.ai/api/v1/models', {
         headers: {
-          'Authorization': `Bearer ${config.apiKey}`,
+          Authorization: `Bearer ${config.apiKey}`,
           'Content-Type': 'application/json',
         },
       });
@@ -51,7 +54,11 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
 
   // Fetch OpenRouter models when API key is provided
   useEffect(() => {
-    if (config.provider === 'openrouter' && config.apiKey && config.apiKey.length > 10) {
+    if (
+      config.provider === 'openrouter' &&
+      config.apiKey &&
+      config.apiKey.length > 10
+    ) {
       fetchOpenRouterModels();
     }
   }, [config.provider, config.apiKey, fetchOpenRouterModels]);
@@ -61,7 +68,10 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
       provider,
       apiKey: '',
       model: PROVIDER_CONFIGS[provider].defaultModel,
-      baseUrl: provider === 'openrouter' ? PROVIDER_CONFIGS.openrouter.baseUrl : undefined,
+      baseUrl:
+        provider === 'openrouter'
+          ? PROVIDER_CONFIGS.openrouter.baseUrl
+          : undefined,
     });
     setOpenRouterModels([]);
     setError('');
@@ -105,13 +115,25 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Setup AI Provider</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Setup AI Provider
+          </h2>
           <button
             onClick={onCancel}
             className="text-gray-500 hover:text-gray-700 transition-colors"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -123,27 +145,34 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
               Choose your AI provider
             </label>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {(Object.keys(PROVIDER_CONFIGS) as LLMProvider[]).map((provider) => {
-                const info = PROVIDER_CONFIGS[provider];
-                return (
-                  <button
-                    key={provider}
-                    onClick={() => handleProviderChange(provider)}
-                    className={`p-4 rounded-lg border-2 transition-all text-left ${
-                      config.provider === provider
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300 bg-gray-50 hover:border-gray-400'
-                    }`}
-                  >
-                    <div className="font-medium text-gray-900 mb-1">{info.name}</div>
-                    <div className="text-sm text-gray-600">
-                      {provider === 'openai' && 'Most popular and reliable AI provider'}
-                      {provider === 'anthropic' && 'Advanced reasoning and safety-focused AI'}
-                      {provider === 'openrouter' && 'Access to 100+ models at competitive prices'}
-                    </div>
-                  </button>
-                );
-              })}
+              {(Object.keys(PROVIDER_CONFIGS) as LLMProvider[]).map(
+                provider => {
+                  const info = PROVIDER_CONFIGS[provider];
+                  return (
+                    <button
+                      key={provider}
+                      onClick={() => handleProviderChange(provider)}
+                      className={`p-4 rounded-lg border-2 transition-all text-left ${
+                        config.provider === provider
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-300 bg-gray-50 hover:border-gray-400'
+                      }`}
+                    >
+                      <div className="font-medium text-gray-900 mb-1">
+                        {info.name}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {provider === 'openai' &&
+                          'Most popular and reliable AI provider'}
+                        {provider === 'anthropic' &&
+                          'Advanced reasoning and safety-focused AI'}
+                        {provider === 'openrouter' &&
+                          'Access to 100+ models at competitive prices'}
+                      </div>
+                    </button>
+                  );
+                }
+              )}
             </div>
           </div>
 
@@ -155,9 +184,11 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
               </label>
               <a
                 href={
-                  config.provider === 'openai' ? 'https://platform.openai.com/signup' :
-                  config.provider === 'anthropic' ? 'https://console.anthropic.com/' :
-                  'https://openrouter.ai/'
+                  config.provider === 'openai'
+                    ? 'https://platform.openai.com/signup'
+                    : config.provider === 'anthropic'
+                      ? 'https://console.anthropic.com/'
+                      : 'https://openrouter.ai/'
                 }
                 target="_blank"
                 rel="noopener noreferrer"
@@ -169,7 +200,9 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
             <input
               type="password"
               value={config.apiKey}
-              onChange={(e) => setConfig(prev => ({ ...prev, apiKey: e.target.value }))}
+              onChange={e =>
+                setConfig(prev => ({ ...prev, apiKey: e.target.value }))
+              }
               placeholder="Enter your API key..."
               className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -183,10 +216,12 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
             {config.provider === 'openrouter' && openRouterModels.length > 0 ? (
               <select
                 value={config.model}
-                onChange={(e) => setConfig(prev => ({ ...prev, model: e.target.value }))}
+                onChange={e =>
+                  setConfig(prev => ({ ...prev, model: e.target.value }))
+                }
                 className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {openRouterModels.map((model) => (
+                {openRouterModels.map(model => (
                   <option key={model.id} value={model.id}>
                     {model.name} - ${model.pricing.prompt}/1K tokens
                   </option>
@@ -195,10 +230,12 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
             ) : (
               <select
                 value={config.model}
-                onChange={(e) => setConfig(prev => ({ ...prev, model: e.target.value }))}
+                onChange={e =>
+                  setConfig(prev => ({ ...prev, model: e.target.value }))
+                }
                 className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {currentProvider.models.map((model) => (
+                {currentProvider.models.map(model => (
                   <option key={model} value={model}>
                     {model}
                   </option>
@@ -206,7 +243,9 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
               </select>
             )}
             {config.provider === 'openrouter' && isLoadingModels && (
-              <p className="mt-1 text-sm text-gray-600">Loading available models...</p>
+              <p className="mt-1 text-sm text-gray-600">
+                Loading available models...
+              </p>
             )}
           </div>
 
@@ -219,7 +258,9 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
               <input
                 type="text"
                 value={config.baseUrl || ''}
-                onChange={(e) => setConfig(prev => ({ ...prev, baseUrl: e.target.value }))}
+                onChange={e =>
+                  setConfig(prev => ({ ...prev, baseUrl: e.target.value }))
+                }
                 className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 readOnly
               />
@@ -230,8 +271,18 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-3">
               <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="w-5 h-5 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <span className="text-red-700">{error}</span>
               </div>
@@ -266,12 +317,27 @@ export function LLMSetup({ onComplete, onCancel }: LLMSetupProps) {
         {/* Info Box */}
         <div className="mt-6 bg-blue-50 border border-blue-200 rounded-md p-4">
           <div className="flex items-start space-x-2">
-            <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-5 h-5 text-blue-600 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <div className="text-blue-800 text-sm">
-              <p className="font-medium mb-1">Your API key is stored securely</p>
-              <p>We encrypt and store your API key securely. It&apos;s never sent to our servers in plain text.</p>
+              <p className="font-medium mb-1">
+                Your API key is stored securely
+              </p>
+              <p>
+                We encrypt and store your API key securely. It&apos;s never sent
+                to our servers in plain text.
+              </p>
             </div>
           </div>
         </div>

@@ -1,19 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/utils/auth';
-import { 
-  validateApiKey, 
-  validateApiKeyFormat, 
+import { NextRequest, NextResponse } from 'next/server';
+
+import {
   fetchOpenRouterModels,
-  getDefaultModel 
+  getDefaultModel,
+  validateApiKey,
+  validateApiKeyFormat,
 } from '@/services/llmService';
+import { LLMProvider, LLMSetupRequest, LLMSetupResponse } from '@/types/llm';
+import { authOptions } from '@/utils/auth';
 import { encryptApiKey } from '@/utils/encryption';
-import { LLMSetupRequest, LLMSetupResponse, LLMProvider } from '@/types/llm';
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -26,10 +27,7 @@ export async function POST(request: NextRequest) {
 
     // Validate provider
     if (!['openai', 'anthropic', 'openrouter'].includes(provider)) {
-      return NextResponse.json(
-        { error: 'Invalid provider' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid provider' }, { status: 400 });
     }
 
     // Validate API key format
@@ -45,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     // Validate API key by making a test request
     const keyValid = await validateApiKey(provider as LLMProvider, apiKey);
-    
+
     if (!keyValid) {
       return NextResponse.json({
         success: false,
@@ -71,7 +69,8 @@ export async function POST(request: NextRequest) {
       provider,
       encryptedApiKey,
       model: model || getDefaultModel(provider as LLMProvider),
-      baseUrl: provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : baseUrl,
+      baseUrl:
+        provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : baseUrl,
       configuredAt: new Date(),
     };
 
@@ -92,7 +91,6 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-
   } catch (error) {
     console.error('LLM setup error:', error);
     return NextResponse.json(
@@ -105,7 +103,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -115,7 +113,7 @@ export async function GET(request: NextRequest) {
 
     // Get current LLM config from cookies
     const llmConfigCookie = request.cookies.get('llm-config');
-    
+
     if (!llmConfigCookie) {
       return NextResponse.json({ configured: false });
     }
@@ -132,7 +130,6 @@ export async function GET(request: NextRequest) {
       // Invalid config, return not configured
       return NextResponse.json({ configured: false });
     }
-
   } catch (error) {
     console.error('Get LLM config error:', error);
     return NextResponse.json(

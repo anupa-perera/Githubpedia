@@ -25,7 +25,9 @@ export interface AppConfig {
 export function getConfig(): AppConfig {
   const validation = validateConfig();
   if (!validation.valid) {
-    throw new Error(`Missing required environment variables: ${validation.missing.join(', ')}`);
+    throw new Error(
+      `Missing required environment variables: ${validation.missing.join(', ')}`
+    );
   }
 
   return {
@@ -40,7 +42,9 @@ export function getConfig(): AppConfig {
     },
     app: {
       baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000',
-      environment: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'development',
+      environment:
+        (process.env.NODE_ENV as 'development' | 'production' | 'test') ||
+        'development',
     },
   };
 }
@@ -50,7 +54,7 @@ export function getConfig(): AppConfig {
  */
 export function validateConfig(): { valid: boolean; missing: string[] } {
   const missing: string[] = [];
-  
+
   // GitHub OAuth credentials are required
   if (!process.env.GITHUB_CLIENT_ID) {
     missing.push('GITHUB_CLIENT_ID');
@@ -58,7 +62,7 @@ export function validateConfig(): { valid: boolean; missing: string[] } {
   if (!process.env.GITHUB_CLIENT_SECRET) {
     missing.push('GITHUB_CLIENT_SECRET');
   }
-  
+
   // NextAuth configuration is required
   if (!process.env.NEXTAUTH_SECRET) {
     missing.push('NEXTAUTH_SECRET');

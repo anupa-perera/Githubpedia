@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
@@ -18,15 +19,17 @@ interface LLMConfigCheckProps {
 export default function LLMConfigCheck({ children }: LLMConfigCheckProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [configStatus, setConfigStatus] = useState<LLMConfigStatus | null>(null);
+  const [configStatus, setConfigStatus] = useState<LLMConfigStatus | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [isOnSetupPage, setIsOnSetupPage] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setIsOnSetupPage(
-        window.location.pathname === '/llm-setup' || 
-        window.location.pathname.startsWith('/auth/')
+        window.location.pathname === '/llm-setup' ||
+          window.location.pathname.startsWith('/auth/')
       );
     }
   }, []);

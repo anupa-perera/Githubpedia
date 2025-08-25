@@ -1,8 +1,12 @@
-import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
+
 import { LLMProvider, OpenRouterModel, PROVIDER_CONFIGS } from '@/types/llm';
 
-export async function validateApiKey(provider: LLMProvider, apiKey: string): Promise<boolean> {
+export async function validateApiKey(
+  provider: LLMProvider,
+  apiKey: string
+): Promise<boolean> {
   try {
     switch (provider) {
       case 'openai':
@@ -54,7 +58,7 @@ async function validateOpenRouterKey(apiKey: string): Promise<boolean> {
   try {
     const response = await fetch('https://openrouter.ai/api/v1/models', {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
     });
@@ -64,11 +68,13 @@ async function validateOpenRouterKey(apiKey: string): Promise<boolean> {
   }
 }
 
-export async function fetchOpenRouterModels(apiKey: string): Promise<OpenRouterModel[]> {
+export async function fetchOpenRouterModels(
+  apiKey: string
+): Promise<OpenRouterModel[]> {
   try {
     const response = await fetch('https://openrouter.ai/api/v1/models', {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
     });
@@ -85,7 +91,10 @@ export async function fetchOpenRouterModels(apiKey: string): Promise<OpenRouterM
   }
 }
 
-export function validateApiKeyFormat(provider: LLMProvider, apiKey: string): boolean {
+export function validateApiKeyFormat(
+  provider: LLMProvider,
+  apiKey: string
+): boolean {
   const config = PROVIDER_CONFIGS[provider];
   if (!config.apiKeyPattern) {
     return true; // No pattern defined, assume valid

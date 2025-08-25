@@ -1,7 +1,8 @@
 'use client';
 
-import { signIn, getProviders } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+
+import { getProviders, signIn } from 'next-auth/react';
 
 interface Provider {
   id: string;
@@ -12,7 +13,9 @@ interface Provider {
 }
 
 export default function SignIn() {
-  const [providers, setProviders] = useState<Record<string, Provider> | null>(null);
+  const [providers, setProviders] = useState<Record<string, Provider> | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchProviders = async () => {
@@ -30,12 +33,13 @@ export default function SignIn() {
             Sign in to GitHub Developer Wiki
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Connect your GitHub account to explore repositories with AI-powered insights
+            Connect your GitHub account to explore repositories with AI-powered
+            insights
           </p>
         </div>
         <div className="mt-8 space-y-6">
           {providers &&
-            Object.values(providers).map((provider) => (
+            Object.values(providers).map(provider => (
               <div key={provider.name}>
                 <button
                   onClick={() => signIn(provider.id, { callbackUrl: '/' })}
@@ -59,6 +63,14 @@ export default function SignIn() {
             ))}
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="absolute bottom-4 left-0 right-0 text-center">
+        <div className="text-sm text-gray-500">
+          <p className="mb-1">Made by Anupa Perera (acex_x)</p>
+          <p className="text-xs">For the devs, by a dev</p>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSession, signOut } from 'next-auth/react';
-import { ThreadSelector } from './ThreadSelector';
+import { useEffect, useState } from 'react';
+
+import { signOut, useSession } from 'next-auth/react';
+
 import { ChatWindow } from './ChatWindow';
 import { LLMSetup } from './LLMSetup';
 import { LLMSwitcher } from './LLMSwitcher';
+import { ThreadSelector } from './ThreadSelector';
 
 export interface ChatThread {
   id: string;
@@ -27,11 +29,13 @@ export function ChatInterface() {
   useEffect(() => {
     const savedThreads = localStorage.getItem('chat-threads');
     if (savedThreads) {
-      const parsedThreads = JSON.parse(savedThreads).map((thread: ChatThread) => ({
-        ...thread,
-        createdAt: new Date(thread.createdAt),
-        updatedAt: new Date(thread.updatedAt),
-      }));
+      const parsedThreads = JSON.parse(savedThreads).map(
+        (thread: ChatThread) => ({
+          ...thread,
+          createdAt: new Date(thread.createdAt),
+          updatedAt: new Date(thread.updatedAt),
+        })
+      );
       setThreads(parsedThreads);
     }
 
@@ -69,11 +73,13 @@ export function ChatInterface() {
   };
 
   const updateThread = (threadId: string, updates: Partial<ChatThread>) => {
-    setThreads(prev => prev.map(thread =>
-      thread.id === threadId
-        ? { ...thread, ...updates, updatedAt: new Date() }
-        : thread
-    ));
+    setThreads(prev =>
+      prev.map(thread =>
+        thread.id === threadId
+          ? { ...thread, ...updates, updatedAt: new Date() }
+          : thread
+      )
+    );
   };
 
   const deleteThread = (threadId: string) => {
@@ -116,7 +122,9 @@ export function ChatInterface() {
                 clipRule="evenodd"
               />
             </svg>
-            <h1 className="text-xl font-bold text-white">GitHub Developer Wiki</h1>
+            <h1 className="text-xl font-bold text-white">
+              GitHub Developer Wiki
+            </h1>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -144,9 +152,24 @@ export function ChatInterface() {
                 className="text-gray-400 hover:text-white transition-colors"
                 title="LLM Settings"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
                 </svg>
               </button>
             )}
@@ -164,8 +187,18 @@ export function ChatInterface() {
               onClick={() => signOut()}
               className="text-gray-400 hover:text-white transition-colors"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
               </svg>
             </button>
           </div>
@@ -190,7 +223,7 @@ export function ChatInterface() {
           {activeThread ? (
             <ChatWindow
               thread={activeThread}
-              onUpdateThread={(updates) => updateThread(activeThread.id, updates)}
+              onUpdateThread={updates => updateThread(activeThread.id, updates)}
               llmConfigured={llmConfigured}
               onShowLLMSetup={() => setShowLLMSetup(true)}
             />
@@ -198,12 +231,26 @@ export function ChatInterface() {
             <div className="flex-1 flex items-center justify-center bg-gray-900">
               <div className="text-center">
                 <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  <svg
+                    className="w-8 h-8 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                    />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-white mb-2">No conversation selected</h3>
-                <p className="text-gray-400 mb-4">Choose a thread from the slot machine or create a new one</p>
+                <h3 className="text-lg font-medium text-white mb-2">
+                  No conversation selected
+                </h3>
+                <p className="text-gray-400 mb-4">
+                  Choose a thread from the slot machine or create a new one
+                </p>
                 <button
                   onClick={createNewThread}
                   className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md font-medium transition-colors"

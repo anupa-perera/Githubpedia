@@ -18,7 +18,7 @@ Create or update the file `.kiro/settings/mcp.json` with the following configura
       "disabled": false,
       "autoApprove": [
         "mcp_github_get_file_contents",
-        "mcp_github_search_code", 
+        "mcp_github_search_code",
         "mcp_github_get_pull_request_files",
         "mcp_github_search_repositories",
         "mcp_github_list_commits",
