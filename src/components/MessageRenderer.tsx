@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -30,19 +31,19 @@ function CodeBlock({ code, language }: CodeBlockProps) {
   // Map common language aliases to supported languages
   const normalizeLanguage = (lang?: string): string => {
     if (!lang) return 'text';
-    
+
     const langMap: Record<string, string> = {
-      'js': 'javascript',
-      'ts': 'typescript',
-      'py': 'python',
-      'sh': 'bash',
-      'shell': 'bash',
-      'yml': 'yaml',
-      'md': 'markdown',
-      'jsx': 'javascript',
-      'tsx': 'typescript'
+      js: 'javascript',
+      ts: 'typescript',
+      py: 'python',
+      sh: 'bash',
+      shell: 'bash',
+      yml: 'yaml',
+      md: 'markdown',
+      jsx: 'javascript',
+      tsx: 'typescript',
     };
-    
+
     return langMap[lang.toLowerCase()] || lang.toLowerCase();
   };
 
@@ -60,15 +61,35 @@ function CodeBlock({ code, language }: CodeBlockProps) {
         >
           {copied ? (
             <>
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
               <span>Copied</span>
             </>
           ) : (
             <>
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
               </svg>
               <span>Copy</span>
             </>
@@ -84,14 +105,14 @@ function CodeBlock({ code, language }: CodeBlockProps) {
             padding: '12px',
             background: 'transparent',
             fontSize: '14px',
-            lineHeight: '1.5'
+            lineHeight: '1.5',
           }}
           showLineNumbers={code.split('\n').length > 5}
           lineNumberStyle={{
             color: '#6b7280',
             fontSize: '12px',
             paddingRight: '12px',
-            minWidth: '2em'
+            minWidth: '2em',
           }}
         >
           {code}
@@ -109,7 +130,10 @@ function InlineCode({ children }: { children: string }) {
   );
 }
 
-export function MessageRenderer({ content, className = '' }: MessageRendererProps) {
+export function MessageRenderer({
+  content,
+  className = '',
+}: MessageRendererProps) {
   // Parse markdown-like content
   const parseContent = (text: string) => {
     const parts: React.ReactNode[] = [];
@@ -166,9 +190,7 @@ export function MessageRenderer({ content, className = '' }: MessageRendererProp
 
       // Add inline code
       parts.push(
-        <InlineCode key={`inline-${match.index}`}>
-          {match[1]}
-        </InlineCode>
+        <InlineCode key={`inline-${match.index}`}>{match[1]}</InlineCode>
       );
 
       currentIndex = match.index + match[0].length;
@@ -195,10 +217,14 @@ export function MessageRenderer({ content, className = '' }: MessageRendererProp
       // Parse URLs and file paths
       const urlRegex = /(https?:\/\/[^\s]+)/g;
       const filePathRegex = /(\w+\/[\w\/.-]+\.\w+)/g;
-      
+
       let urlMatch: RegExpExecArray | null;
       let fileMatch: RegExpExecArray | null;
-      const specialParts: { index: number; length: number; element: React.ReactNode }[] = [];
+      const specialParts: {
+        index: number;
+        length: number;
+        element: React.ReactNode;
+      }[] = [];
 
       // Find URLs
       while ((urlMatch = urlRegex.exec(line)) !== null) {
@@ -215,17 +241,18 @@ export function MessageRenderer({ content, className = '' }: MessageRendererProp
             >
               {urlMatch[1]}
             </a>
-          )
+          ),
         });
       }
 
       // Find file paths (only if no URLs overlap)
       while ((fileMatch = filePathRegex.exec(line)) !== null) {
-        const overlaps = specialParts.some(part => 
-          fileMatch!.index < part.index + part.length && 
-          fileMatch!.index + fileMatch![0].length > part.index
+        const overlaps = specialParts.some(
+          part =>
+            fileMatch!.index < part.index + part.length &&
+            fileMatch!.index + fileMatch![0].length > part.index
         );
-        
+
         if (!overlaps) {
           specialParts.push({
             index: fileMatch.index,
@@ -237,7 +264,7 @@ export function MessageRenderer({ content, className = '' }: MessageRendererProp
               >
                 {fileMatch[1]}
               </span>
-            )
+            ),
           });
         }
       }
@@ -275,7 +302,10 @@ export function MessageRenderer({ content, className = '' }: MessageRendererProp
 
           // Add bold text
           parts.push(
-            <strong key={`bold-${lineIndex}-${match.index}`} className="font-semibold">
+            <strong
+              key={`bold-${lineIndex}-${match.index}`}
+              className="font-semibold"
+            >
               {match[1]}
             </strong>
           );

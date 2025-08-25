@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { LLMProvider, PROVIDER_CONFIGS, OpenRouterModel } from '@/types/llm';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { LLMProvider, OpenRouterModel, PROVIDER_CONFIGS } from '@/types/llm';
 
 interface LLMSwitcherProps {
   onProviderChange?: (provider: LLMProvider, model: string) => void;
@@ -14,11 +15,16 @@ interface CurrentConfig {
 }
 
 export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
-  const [currentConfig, setCurrentConfig] = useState<CurrentConfig | null>(null);
+  const [currentConfig, setCurrentConfig] = useState<CurrentConfig | null>(
+    null
+  );
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<LLMProvider>('openai');
+  const [selectedProvider, setSelectedProvider] =
+    useState<LLMProvider>('openai');
   const [selectedModel, setSelectedModel] = useState('');
-  const [openRouterModels, setOpenRouterModels] = useState<OpenRouterModel[]>([]);
+  const [openRouterModels, setOpenRouterModels] = useState<OpenRouterModel[]>(
+    []
+  );
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -26,7 +32,10 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
   // Handle click outside to close dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -62,7 +71,7 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
   // Fetch OpenRouter models when needed
   const fetchOpenRouterModels = useCallback(async () => {
     if (selectedProvider !== 'openrouter') return;
-    
+
     setIsLoadingModels(true);
     try {
       // We need to get the API key from the current config to fetch models
@@ -74,7 +83,7 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
           description: 'OpenAI GPT-4',
           pricing: { prompt: 0.03, completion: 0.06 },
           context_length: 8192,
-          architecture: { modality: 'text', tokenizer: 'cl100k_base' }
+          architecture: { modality: 'text', tokenizer: 'cl100k_base' },
         },
         {
           id: 'openai/gpt-3.5-turbo',
@@ -82,7 +91,7 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
           description: 'OpenAI GPT-3.5 Turbo',
           pricing: { prompt: 0.001, completion: 0.002 },
           context_length: 4096,
-          architecture: { modality: 'text', tokenizer: 'cl100k_base' }
+          architecture: { modality: 'text', tokenizer: 'cl100k_base' },
         },
         {
           id: 'anthropic/claude-3-sonnet',
@@ -90,7 +99,7 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
           description: 'Anthropic Claude 3 Sonnet',
           pricing: { prompt: 0.003, completion: 0.015 },
           context_length: 200000,
-          architecture: { modality: 'text', tokenizer: 'claude' }
+          architecture: { modality: 'text', tokenizer: 'claude' },
         },
         {
           id: 'meta-llama/llama-2-70b-chat',
@@ -98,8 +107,8 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
           description: 'Meta Llama 2 70B Chat',
           pricing: { prompt: 0.0007, completion: 0.0009 },
           context_length: 4096,
-          architecture: { modality: 'text', tokenizer: 'llama' }
-        }
+          architecture: { modality: 'text', tokenizer: 'llama' },
+        },
       ];
       setOpenRouterModels(popularModels);
     } catch (error) {
@@ -177,7 +186,7 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
       description: model,
       pricing: { prompt: 0, completion: 0 },
       context_length: 0,
-      architecture: { modality: 'text', tokenizer: '' }
+      architecture: { modality: 'text', tokenizer: '' },
     }));
   };
 
@@ -190,17 +199,26 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
       >
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-          <span className="font-medium">{PROVIDER_CONFIGS[currentConfig.provider].name}</span>
+          <span className="font-medium">
+            {PROVIDER_CONFIGS[currentConfig.provider].name}
+          </span>
           <span className="text-gray-300">•</span>
-          <span className="text-gray-300 truncate max-w-32">{currentConfig.model}</span>
+          <span className="text-gray-300 truncate max-w-32">
+            {currentConfig.model}
+          </span>
         </div>
-        <svg 
-          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} 
-          fill="none" 
-          stroke="currentColor" 
+        <svg
+          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
 
@@ -208,8 +226,10 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
       {isOpen && (
         <div className="absolute top-full right-0 mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
           <div className="p-4">
-            <h3 className="text-white font-medium mb-4">Switch AI Provider & Model</h3>
-            
+            <h3 className="text-white font-medium mb-4">
+              Switch AI Provider & Model
+            </h3>
+
             {/* Provider Selection */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-200 mb-2">
@@ -217,7 +237,9 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
               </label>
               <select
                 value={selectedProvider}
-                onChange={(e) => handleProviderChange(e.target.value as LLMProvider)}
+                onChange={e =>
+                  handleProviderChange(e.target.value as LLMProvider)
+                }
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {Object.entries(PROVIDER_CONFIGS).map(([key, config]) => (
@@ -235,16 +257,16 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
               </label>
               <select
                 value={selectedModel}
-                onChange={(e) => handleModelChange(e.target.value)}
+                onChange={e => handleModelChange(e.target.value)}
                 className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isLoadingModels}
               >
-                {getAvailableModels().map((model) => (
+                {getAvailableModels().map(model => (
                   <option key={model.id} value={model.id}>
-                    {selectedProvider === 'openrouter' && model.pricing.prompt > 0
+                    {selectedProvider === 'openrouter' &&
+                    model.pricing.prompt > 0
                       ? `${model.name} - $${model.pricing.prompt}/1K tokens`
-                      : model.name
-                    }
+                      : model.name}
                   </option>
                 ))}
               </select>
@@ -263,7 +285,11 @@ export function LLMSwitcher({ onProviderChange }: LLMSwitcherProps) {
               </button>
               <button
                 onClick={handleSaveChanges}
-                disabled={isUpdating || (selectedProvider === currentConfig.provider && selectedModel === currentConfig.model)}
+                disabled={
+                  isUpdating ||
+                  (selectedProvider === currentConfig.provider &&
+                    selectedModel === currentConfig.model)
+                }
                 className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white py-2 px-3 rounded-md text-sm transition-colors flex items-center justify-center"
               >
                 {isUpdating ? (

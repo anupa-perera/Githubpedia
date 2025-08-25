@@ -2,14 +2,15 @@
  * Query Service - Handles LangChain orchestration for GitHub repository queries
  * Uses functional programming approach with multi-provider LLM support
  */
-
-import { ChatOpenAI } from '@langchain/openai';
 import { ChatAnthropic } from '@langchain/anthropic';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
-import { LLMProvider } from '@/types/llm';
+import { ChatOpenAI } from '@langchain/openai';
+
 import { CodeReference } from '@/types/github';
-import { getRepositoryContext, GitHubConfig } from './mcpService';
+import { LLMProvider } from '@/types/llm';
+
+import { GitHubConfig, getRepositoryContext } from './mcpService';
 
 export interface GitHubRepo {
   owner: string;
@@ -39,11 +40,13 @@ export interface QueryResult {
 /**
  * Main query processing function using enhanced MCP service
  */
-export async function processQuery(context: QueryContext): Promise<QueryResult> {
+export async function processQuery(
+  context: QueryContext
+): Promise<QueryResult> {
   try {
     // Initialize LLM based on provider
     const llm = createLLM(context.llmConfig);
-    
+
     // Get comprehensive repository context using GitHub API service
     const githubConfig: GitHubConfig = { token: context.githubToken };
     const repositoryContext = await getRepositoryContext(
@@ -56,7 +59,7 @@ export async function processQuery(context: QueryContext): Promise<QueryResult> 
     if (repositoryContext.error) {
       return {
         success: false,
-        error: `Failed to fetch repository data: ${repositoryContext.error}`
+        error: `Failed to fetch repository data: ${repositoryContext.error}`,
       };
     }
 
@@ -72,64 +75,81 @@ export async function processQuery(context: QueryContext): Promise<QueryResult> 
       success: true,
       response: response.answer,
       sources: response.sources,
-      codeReferences: response.codeReferences
+      codeReferences: response.codeReferences,
     };
-
   } catch (error) {
     console.error('Query processing failed:', error);
-    
+
     // Handle specific error types
     if (error instanceof Error) {
       // MCP server errors
       if (error.message.includes('Remote MCP server')) {
         return {
           success: false,
-          error: 'GitHub MCP server is currently unavailable. Please try again in a few minutes.'
+          error:
+            'GitHub MCP server is currently unavailable. Please try again in a few minutes.',
         };
       }
-      
+
       // GitHub rate limit errors (from MCP server)
-      if (error.message.includes('rate limit') || error.message.includes('403')) {
+      if (
+        error.message.includes('rate limit') ||
+        error.message.includes('403')
+      ) {
         return {
           success: false,
-          error: 'GitHub rate limit exceeded. Please wait a few minutes before trying again.'
+          error:
+            'GitHub rate limit exceeded. Please wait a few minutes before trying again.',
         };
       }
-      
+
       // Network connectivity errors
-      if (error.message.includes('fetch') || error.message.includes('network') || error.message.includes('ENOTFOUND')) {
+      if (
+        error.message.includes('fetch') ||
+        error.message.includes('network') ||
+        error.message.includes('ENOTFOUND')
+      ) {
         return {
           success: false,
-          error: 'Network error occurred. Please check your internet connection and try again.'
+          error:
+            'Network error occurred. Please check your internet connection and try again.',
         };
       }
-      
+
       // Repository access errors
-      if (error.message.includes('404') || error.message.includes('Not Found')) {
+      if (
+        error.message.includes('404') ||
+        error.message.includes('Not Found')
+      ) {
         return {
           success: false,
-          error: 'Repository not found or not accessible. Please check the repository URL and your permissions.'
+          error:
+            'Repository not found or not accessible. Please check the repository URL and your permissions.',
         };
       }
-      
+
       // LLM provider errors
-      if (error.message.includes('API key') || error.message.includes('authentication')) {
+      if (
+        error.message.includes('API key') ||
+        error.message.includes('authentication')
+      ) {
         return {
           success: false,
-          error: 'AI provider authentication failed. Please check your API key configuration.'
+          error:
+            'AI provider authentication failed. Please check your API key configuration.',
         };
       }
-      
+
       // Generic error with helpful message
       return {
         success: false,
-        error: `Query processing failed: ${error.message}. Please try again or contact support if the issue persists.`
+        error: `Query processing failed: ${error.message}. Please try again or contact support if the issue persists.`,
       };
     }
-    
+
     return {
       success: false,
-      error: 'An unexpected error occurred. Please try again.'
+      error: 'An unexpected error occurred. Please try again.',
     };
   }
 }
@@ -145,14 +165,14 @@ function createLLM(config: QueryContext['llmConfig']): BaseChatModel {
         model: config.model,
         temperature: 0.1,
       });
-    
+
     case 'anthropic':
       return new ChatAnthropic({
         apiKey: config.apiKey,
         model: config.model,
         temperature: 0.1,
       });
-    
+
     case 'openrouter':
       return new ChatOpenAI({
         apiKey: config.apiKey,
@@ -162,7 +182,7 @@ function createLLM(config: QueryContext['llmConfig']): BaseChatModel {
         },
         temperature: 0.1,
       });
-    
+
     default:
       throw new Error(`Unsupported LLM provider: ${config.provider}`);
   }
@@ -188,8 +208,10 @@ async function generateResponseWithContext(
   sources: string[];
   codeReferences: CodeReference[];
 }> {
-  const hasReadme = repositoryContext.readme && repositoryContext.readme.length > 0;
-  const hasCodeFiles = repositoryContext.codeFiles && repositoryContext.codeFiles.length > 0;
+  const hasReadme =
+    repositoryContext.readme && repositoryContext.readme.length > 0;
+  const hasCodeFiles =
+    repositoryContext.codeFiles && repositoryContext.codeFiles.length > 0;
   const hasStructure = repositoryContext.structure;
 
   let systemPrompt = `You are an expert software developer and code analyst. You help users understand GitHub repositories by analyzing their code, structure, and documentation.
@@ -256,7 +278,9 @@ Be honest about limitations while still being helpful.`;
 
   const response = await llm.invoke([
     new SystemMessage(systemPrompt),
-    new HumanMessage(`Question about ${repository.owner}/${repository.repo}: ${query}`)
+    new HumanMessage(
+      `Question about ${repository.owner}/${repository.repo}: ${query}`
+    ),
   ]);
 
   // Extract sources and code references from the repository context
@@ -268,15 +292,17 @@ Be honest about limitations while still being helpful.`;
 
   // Add README as source if available
   if (hasReadme) {
-    sources.push(`https://github.com/${repository.owner}/${repository.repo}/blob/main/README.md`);
+    sources.push(
+      `https://github.com/${repository.owner}/${repository.repo}/blob/main/README.md`
+    );
   }
 
   // Add code files as sources and references
   if (hasCodeFiles) {
-    repositoryContext.codeFiles.forEach((file) => {
+    repositoryContext.codeFiles.forEach(file => {
       const fileUrl = `https://github.com/${repository.owner}/${repository.repo}/blob/main/${file.path}`;
       sources.push(fileUrl);
-      
+
       // Create code reference
       const lines = file.content.split('\n');
       codeReferences.push({
@@ -284,7 +310,7 @@ Be honest about limitations while still being helpful.`;
         startLine: 1,
         endLine: Math.min(100, lines.length), // Limit to first 100 lines
         content: lines.slice(0, 100).join('\n'),
-        url: fileUrl
+        url: fileUrl,
       });
     });
   }
@@ -292,6 +318,6 @@ Be honest about limitations while still being helpful.`;
   return {
     answer: response.content as string,
     sources: [...new Set(sources)], // Remove duplicates
-    codeReferences
+    codeReferences,
   };
 }

@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from 'next/server';
+
 import { authOptions } from '@/utils/auth';
 import { parseGitHubUrl } from '@/utils/githubUtils';
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.accessToken) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const repoUrl = searchParams.get('url');
-    
+
     if (!repoUrl) {
       return NextResponse.json(
         { error: 'Repository URL is required' },
@@ -37,10 +38,10 @@ export async function GET(request: NextRequest) {
       `https://api.github.com/repos/${repoInfo.owner}/${repoInfo.repo}`,
       {
         headers: {
-          'Authorization': `Bearer ${session.accessToken}`,
-          'Accept': 'application/vnd.github.v3+json',
-          'User-Agent': 'GitHub-Developer-Wiki'
-        }
+          Authorization: `Bearer ${session.accessToken}`,
+          Accept: 'application/vnd.github.v3+json',
+          'User-Agent': 'GitHub-Developer-Wiki',
+        },
       }
     );
 
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest) {
     }
 
     const repoData = await response.json();
-    
+
     // Return formatted repository information
     return NextResponse.json({
       id: repoData.id,
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
       full_name: repoData.full_name,
       owner: {
         login: repoData.owner.login,
-        avatar_url: repoData.owner.avatar_url
+        avatar_url: repoData.owner.avatar_url,
       },
       description: repoData.description,
       private: repoData.private,
@@ -80,9 +81,8 @@ export async function GET(request: NextRequest) {
       forks_count: repoData.forks_count,
       open_issues_count: repoData.open_issues_count,
       default_branch: repoData.default_branch,
-      topics: repoData.topics || []
+      topics: repoData.topics || [],
     });
-
   } catch (error) {
     console.error('Error fetching repository information:', error);
     return NextResponse.json(

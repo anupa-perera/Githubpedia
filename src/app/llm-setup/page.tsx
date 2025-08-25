@@ -1,18 +1,23 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { LLMProvider, PROVIDER_CONFIGS, OpenRouterModel } from '@/types/llm';
+
+import { LLMProvider, OpenRouterModel, PROVIDER_CONFIGS } from '@/types/llm';
 
 export default function LLMSetupPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  
-  const [selectedProvider, setSelectedProvider] = useState<LLMProvider>('openai');
+
+  const [selectedProvider, setSelectedProvider] =
+    useState<LLMProvider>('openai');
   const [apiKey, setApiKey] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
-  const [openRouterModels, setOpenRouterModels] = useState<OpenRouterModel[]>([]);
+  const [openRouterModels, setOpenRouterModels] = useState<OpenRouterModel[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -27,12 +32,12 @@ export default function LLMSetupPage() {
 
   const fetchOpenRouterModels = useCallback(async () => {
     if (!apiKey) return;
-    
+
     setIsValidatingKey(true);
     try {
       const response = await fetch('https://openrouter.ai/api/v1/models', {
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
       });
@@ -92,20 +97,25 @@ export default function LLMSetupPage() {
       } else {
         setError(result.error || 'Configuration failed');
       }
-    } catch (error) {
+    } catch {
       setError('Network error. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const validateApiKeyFormat = (provider: LLMProvider, key: string): boolean => {
+  const validateApiKeyFormat = (
+    provider: LLMProvider,
+    key: string
+  ): boolean => {
     const config = PROVIDER_CONFIGS[provider];
     if (!config.apiKeyPattern) return true;
     return config.apiKeyPattern.test(key);
   };
 
-  const isApiKeyFormatValid = apiKey ? validateApiKeyFormat(selectedProvider, apiKey) : true;
+  const isApiKeyFormatValid = apiKey
+    ? validateApiKeyFormat(selectedProvider, apiKey)
+    : true;
 
   if (status === 'loading') {
     return (
@@ -123,7 +133,9 @@ export default function LLMSetupPage() {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">LLM Configuration</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            LLM Configuration
+          </h1>
           <p className="mt-2 text-gray-600">
             Configure your AI provider to start querying repositories
           </p>
@@ -150,7 +162,9 @@ export default function LLMSetupPage() {
               </label>
               <select
                 value={selectedProvider}
-                onChange={(e) => setSelectedProvider(e.target.value as LLMProvider)}
+                onChange={e =>
+                  setSelectedProvider(e.target.value as LLMProvider)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               >
                 {Object.entries(PROVIDER_CONFIGS).map(([key, config]) => (
@@ -169,7 +183,7 @@ export default function LLMSetupPage() {
               <input
                 type="password"
                 value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                onChange={e => setApiKey(e.target.value)}
                 placeholder={`Enter your ${PROVIDER_CONFIGS[selectedProvider].name} API key`}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-500 ${
                   !isApiKeyFormatValid ? 'border-red-300' : 'border-gray-300'
@@ -178,7 +192,8 @@ export default function LLMSetupPage() {
               />
               {!isApiKeyFormatValid && (
                 <p className="mt-1 text-sm text-red-600">
-                  Invalid API key format for {PROVIDER_CONFIGS[selectedProvider].name}
+                  Invalid API key format for{' '}
+                  {PROVIDER_CONFIGS[selectedProvider].name}
                 </p>
               )}
               {selectedProvider === 'openrouter' && (
@@ -201,13 +216,14 @@ export default function LLMSetupPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Model
               </label>
-              {selectedProvider === 'openrouter' && openRouterModels.length > 0 ? (
+              {selectedProvider === 'openrouter' &&
+              openRouterModels.length > 0 ? (
                 <select
                   value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
+                  onChange={e => setSelectedModel(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 >
-                  {openRouterModels.map((model) => (
+                  {openRouterModels.map(model => (
                     <option key={model.id} value={model.id}>
                       {model.name} - ${model.pricing.prompt}/1K tokens
                     </option>
@@ -216,10 +232,10 @@ export default function LLMSetupPage() {
               ) : (
                 <select
                   value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
+                  onChange={e => setSelectedModel(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 >
-                  {PROVIDER_CONFIGS[selectedProvider].models.map((model) => (
+                  {PROVIDER_CONFIGS[selectedProvider].models.map(model => (
                     <option key={model} value={model}>
                       {model}
                     </option>
@@ -227,7 +243,9 @@ export default function LLMSetupPage() {
                 </select>
               )}
               {selectedProvider === 'openrouter' && isValidatingKey && (
-                <p className="mt-1 text-sm text-gray-500">Loading available models...</p>
+                <p className="mt-1 text-sm text-gray-500">
+                  Loading available models...
+                </p>
               )}
             </div>
 
@@ -266,8 +284,8 @@ export default function LLMSetupPage() {
               )}
               {selectedProvider === 'openrouter' && (
                 <p className="text-sm text-gray-600">
-                  OpenRouter provides access to 100+ AI models with competitive pricing.
-                  Create an account at{' '}
+                  OpenRouter provides access to 100+ AI models with competitive
+                  pricing. Create an account at{' '}
                   <a
                     href="https://openrouter.ai/"
                     target="_blank"

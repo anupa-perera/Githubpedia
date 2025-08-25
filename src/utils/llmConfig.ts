@@ -14,7 +14,7 @@ export async function getCurrentLLMConfig(): Promise<LLMConfigData | null> {
   try {
     const response = await fetch('/api/llm-setup');
     const data = await response.json();
-    
+
     if (data.configured) {
       return {
         provider: data.provider,
@@ -23,7 +23,7 @@ export async function getCurrentLLMConfig(): Promise<LLMConfigData | null> {
         configuredAt: data.configuredAt,
       };
     }
-    
+
     return { provider: 'openai', model: '', configured: false };
   } catch (error) {
     console.error('Failed to get LLM config:', error);
@@ -34,7 +34,10 @@ export async function getCurrentLLMConfig(): Promise<LLMConfigData | null> {
 /**
  * Switch to a different provider and model
  */
-export async function switchLLMConfig(provider: LLMProvider, model: string): Promise<boolean> {
+export async function switchLLMConfig(
+  provider: LLMProvider,
+  model: string
+): Promise<boolean> {
   try {
     const response = await fetch('/api/llm-setup/switch', {
       method: 'POST',

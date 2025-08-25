@@ -1,7 +1,17 @@
 import OpenAI from 'openai';
-import { LLMProvider, OpenRouterModel, OpenAIModel, AnthropicModel, PROVIDER_CONFIGS } from '@/types/llm';
 
-export async function validateApiKey(provider: LLMProvider, apiKey: string): Promise<boolean> {
+import {
+  AnthropicModel,
+  LLMProvider,
+  OpenAIModel,
+  OpenRouterModel,
+  PROVIDER_CONFIGS,
+} from '@/types/llm';
+
+export async function validateApiKey(
+  provider: LLMProvider,
+  apiKey: string
+): Promise<boolean> {
   try {
     switch (provider) {
       case 'openai':
@@ -33,9 +43,9 @@ async function validateAnthropicKey(apiKey: string): Promise<boolean> {
   try {
     const response = await fetch('https://api.anthropic.com/v1/models', {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01'
+        'anthropic-version': '2023-06-01',
       },
     });
     return response.ok;
@@ -48,7 +58,7 @@ async function validateOpenRouterKey(apiKey: string): Promise<boolean> {
   try {
     const response = await fetch('https://openrouter.ai/api/v1/models', {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
     });
@@ -58,11 +68,13 @@ async function validateOpenRouterKey(apiKey: string): Promise<boolean> {
   }
 }
 
-export async function fetchOpenAIModels(apiKey: string): Promise<OpenAIModel[]> {
+export async function fetchOpenAIModels(
+  apiKey: string
+): Promise<OpenAIModel[]> {
   try {
     const openai = new OpenAI({ apiKey });
     const models = await openai.models.list();
-    
+
     // Filter for GPT models and sort by creation date
     const gptModels = models.data
       .filter(model => model.id.includes('gpt'))
@@ -72,9 +84,9 @@ export async function fetchOpenAIModels(apiKey: string): Promise<OpenAIModel[]> 
         name: model.id,
         description: `OpenAI ${model.id}`,
         created: model.created,
-        owned_by: model.owned_by
+        owned_by: model.owned_by,
       }));
-    
+
     return gptModels;
   } catch (error) {
     console.error('Failed to fetch OpenAI models:', error);
@@ -82,13 +94,15 @@ export async function fetchOpenAIModels(apiKey: string): Promise<OpenAIModel[]> 
   }
 }
 
-export async function fetchAnthropicModels(apiKey: string): Promise<AnthropicModel[]> {
+export async function fetchAnthropicModels(
+  apiKey: string
+): Promise<AnthropicModel[]> {
   try {
     const response = await fetch('https://api.anthropic.com/v1/models', {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01'
+        'anthropic-version': '2023-06-01',
       },
     });
 
@@ -97,7 +111,7 @@ export async function fetchAnthropicModels(apiKey: string): Promise<AnthropicMod
     }
 
     const data = await response.json();
-    
+
     // The API returns { data: [...models] }
     return data.data || [];
   } catch (error) {
@@ -106,11 +120,13 @@ export async function fetchAnthropicModels(apiKey: string): Promise<AnthropicMod
   }
 }
 
-export async function fetchOpenRouterModels(apiKey: string): Promise<OpenRouterModel[]> {
+export async function fetchOpenRouterModels(
+  apiKey: string
+): Promise<OpenRouterModel[]> {
   try {
     const response = await fetch('https://openrouter.ai/api/v1/models', {
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
     });
@@ -127,7 +143,10 @@ export async function fetchOpenRouterModels(apiKey: string): Promise<OpenRouterM
   }
 }
 
-export function validateApiKeyFormat(provider: LLMProvider, apiKey: string): boolean {
+export function validateApiKeyFormat(
+  provider: LLMProvider,
+  apiKey: string
+): boolean {
   const config = PROVIDER_CONFIGS[provider];
   if (!config.apiKeyPattern) {
     return true; // No pattern defined, assume valid

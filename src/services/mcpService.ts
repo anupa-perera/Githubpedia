@@ -1,14 +1,14 @@
 /**
  * GitHub Service for repository interactions
- * 
+ *
  * DIRECT GITHUB API IMPLEMENTATION
- * 
+ *
  * This service uses GitHub's REST API directly for reliable online deployment.
  * Works in all environments including browsers, Vercel, Netlify, etc.
- * 
+ *
  * Prerequisites:
  * - GitHub token with appropriate permissions
- * 
+ *
  * Production-ready implementation with proper error handling!
  */
 
@@ -62,8 +62,6 @@ interface GitHubRepository {
   html_url: string;
 }
 
-
-
 /**
  * Make a direct GitHub API call
  */
@@ -80,8 +78,9 @@ async function callGitHubAPI<T = unknown>(
     return {
       error: {
         code: -1,
-        message: 'GitHub token is required for all API operations. Please configure your GitHub token.'
-      }
+        message:
+          'GitHub token is required for all API operations. Please configure your GitHub token.',
+      },
     };
   }
 
@@ -91,11 +90,11 @@ async function callGitHubAPI<T = unknown>(
     const response = await fetch(`https://api.github.com${endpoint}`, {
       ...options,
       headers: {
-        'Authorization': `token ${config.token}`,
-        'Accept': 'application/vnd.github.v3+json',
+        Authorization: `token ${config.token}`,
+        Accept: 'application/vnd.github.v3+json',
         'User-Agent': 'GitHub-Developer-Wiki',
-        ...options.headers
-      }
+        ...options.headers,
+      },
     });
 
     const duration = Date.now() - startTime;
@@ -111,37 +110,38 @@ async function callGitHubAPI<T = unknown>(
         errorMessage = 'Invalid GitHub token or token expired';
       }
 
-      console.error(`❌ [GitHub API] ${endpoint} failed (${duration}ms): ${errorMessage}`);
+      console.error(
+        `❌ [GitHub API] ${endpoint} failed (${duration}ms): ${errorMessage}`
+      );
       return {
         error: {
           code: response.status,
-          message: errorMessage
-        }
+          message: errorMessage,
+        },
       };
     }
 
     const data = await response.json();
     console.log(`✅ [GitHub API] SUCCESS: ${endpoint} (${duration}ms)`);
     return { result: data as T };
-
   } catch (error) {
     const duration = Date.now() - startTime;
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
 
-    console.error(`💥 [GitHub API] Exception during call to ${endpoint} (${duration}ms):`, error);
+    console.error(
+      `💥 [GitHub API] Exception during call to ${endpoint} (${duration}ms):`,
+      error
+    );
 
     return {
       error: {
         code: -3,
-        message: `GitHub API request failed: ${errorMessage}. Please check your internet connection.`
-      }
+        message: `GitHub API request failed: ${errorMessage}. Please check your internet connection.`,
+      },
     };
   }
 }
-
-
-
-
 
 // Enhanced functions for intelligent code context retrieval
 
@@ -164,8 +164,8 @@ export async function getFileContents(
     return {
       error: {
         code: -1,
-        message: 'Path is not a file'
-      }
+        message: 'Path is not a file',
+      },
     };
   }
 
@@ -176,8 +176,8 @@ export async function getFileContents(
     result: {
       content,
       size: data.size,
-      type: data.type
-    }
+      type: data.type,
+    },
   };
 }
 
@@ -189,7 +189,9 @@ export async function getRepositoryTree(
   repo: string,
   config: GitHubConfig,
   ref: string = 'main'
-): Promise<GitHubResponse<{ tree: Array<{ path: string; type: string; size?: number }> }>> {
+): Promise<
+  GitHubResponse<{ tree: Array<{ path: string; type: string; size?: number }> }>
+> {
   const endpoint = `/repos/${owner}/${repo}/git/trees/${ref}?recursive=1`;
   return callGitHubAPI(endpoint, config);
 }
@@ -215,7 +217,8 @@ export async function getRelevantCodeContext(
     }
 
     const searchData = searchResult.result;
-    const files: Array<{ path: string; content: string; relevance: string }> = [];
+    const files: Array<{ path: string; content: string; relevance: string }> =
+      [];
 
     // Get content for the most relevant files (limit to top 5)
     const relevantFiles = searchData?.items?.slice(0, 5) || [];
@@ -233,7 +236,7 @@ export async function getRelevantCodeContext(
           files.push({
             path: item.path,
             content: fileResult.result.content,
-            relevance: `Search match - Score: ${item.score}`
+            relevance: `Search match - Score: ${item.score}`,
           });
         }
       } catch (error) {
@@ -262,21 +265,26 @@ export async function getRelevantCodeContext(
         'app.ts',
         'main.py',
         'main.go',
-        'main.rs'
+        'main.rs',
       ];
 
       for (const filePath of commonFiles) {
         try {
-          const fileResult = await getFileContents(owner, repo, filePath, config);
+          const fileResult = await getFileContents(
+            owner,
+            repo,
+            filePath,
+            config
+          );
           if (!fileResult.error && fileResult.result) {
             files.push({
               path: filePath,
               content: fileResult.result.content,
-              relevance: 'Common project file'
+              relevance: 'Common project file',
             });
             if (files.length >= 3) break; // Get up to 3 common files
           }
-        } catch (error) {
+        } catch {
           // Continue to next file
         }
       }
@@ -286,7 +294,7 @@ export async function getRelevantCodeContext(
   } catch (error) {
     return {
       files: [],
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -307,15 +315,29 @@ export async function getRepositoryContext(
 }> {
   try {
     // Get README for basic info
-    const readmeResult = await getFileContents(owner, repo, 'README.md', config);
-    const readme = readmeResult.error ? undefined : readmeResult.result?.content;
+    const readmeResult = await getFileContents(
+      owner,
+      repo,
+      'README.md',
+      config
+    );
+    const readme = readmeResult.error
+      ? undefined
+      : readmeResult.result?.content;
 
     // Get relevant code files based on the query
-    const codeContext = await getRelevantCodeContext(owner, repo, query, config);
+    const codeContext = await getRelevantCodeContext(
+      owner,
+      repo,
+      query,
+      config
+    );
 
     // Get repository structure (directory listing)
     const structureResult = await getRepositoryTree(owner, repo, config);
-    const structure = structureResult.error ? undefined : structureResult.result;
+    const structure = structureResult.error
+      ? undefined
+      : structureResult.result;
 
     // If we still don't have much context, try to get more files by exploring the structure
     if (codeContext.files.length < 3 && structure?.tree) {
@@ -334,12 +356,12 @@ export async function getRepositoryContext(
       readme,
       codeFiles: codeContext.files,
       structure,
-      error: codeContext.error
+      error: codeContext.error,
     };
   } catch (error) {
     return {
       codeFiles: [],
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
@@ -373,9 +395,20 @@ async function getAdditionalRelevantFiles(
       // Score based on file type and location
       if (pathLower.includes('src/') || pathLower.includes('lib/')) score += 5;
       if (pathLower.endsWith('.js') || pathLower.endsWith('.ts')) score += 3;
-      if (pathLower.endsWith('.py') || pathLower.endsWith('.go') || pathLower.endsWith('.rs')) score += 3;
-      if (pathLower.includes('main') || pathLower.includes('index') || pathLower.includes('app')) score += 4;
-      if (pathLower.includes('config') || pathLower.includes('setup')) score += 2;
+      if (
+        pathLower.endsWith('.py') ||
+        pathLower.endsWith('.go') ||
+        pathLower.endsWith('.rs')
+      )
+        score += 3;
+      if (
+        pathLower.includes('main') ||
+        pathLower.includes('index') ||
+        pathLower.includes('app')
+      )
+        score += 4;
+      if (pathLower.includes('config') || pathLower.includes('setup'))
+        score += 2;
       if (pathLower.includes('test') || pathLower.includes('spec')) score += 1;
 
       // Penalize very large files or deep nesting
@@ -395,7 +428,7 @@ async function getAdditionalRelevantFiles(
         files.push({
           path: item.path,
           content: fileResult.result.content,
-          relevance: `Structure analysis - Score: ${item.score}`
+          relevance: `Structure analysis - Score: ${item.score}`,
         });
       }
     } catch (error) {
@@ -455,7 +488,18 @@ export async function getPullRequestFiles(
   repo: string,
   pullNumber: number,
   config: GitHubConfig
-): Promise<GitHubResponse<Array<{ filename: string; status: string; additions: number; deletions: number; changes: number; patch?: string }>>> {
+): Promise<
+  GitHubResponse<
+    Array<{
+      filename: string;
+      status: string;
+      additions: number;
+      deletions: number;
+      changes: number;
+      patch?: string;
+    }>
+  >
+> {
   const endpoint = `/repos/${owner}/${repo}/pulls/${pullNumber}/files`;
   return callGitHubAPI(endpoint, config);
 }

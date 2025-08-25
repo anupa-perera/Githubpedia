@@ -11,6 +11,7 @@ This application is configured for deployment on Vercel, the platform created by
 ### Prerequisites
 
 1. **Vercel CLI** (optional, for command-line deployment):
+
    ```bash
    npm install -g vercel
    ```
@@ -37,11 +38,13 @@ This application is configured for deployment on Vercel, the platform created by
 #### Method 2: Vercel CLI
 
 1. **Login to Vercel**:
+
    ```bash
    vercel login
    ```
 
 2. **Deploy to preview**:
+
    ```bash
    npm run deploy:preview
    ```
@@ -54,6 +57,7 @@ This application is configured for deployment on Vercel, the platform created by
 #### Method 3: Git Integration (Automatic)
 
 Once connected to Vercel:
+
 - Push to `main` branch → automatic production deployment
 - Push to other branches → automatic preview deployments
 
@@ -73,6 +77,7 @@ ENCRYPTION_SECRET=your_32_character_encryption_secret
 ### GitHub OAuth Configuration
 
 Update your GitHub OAuth App settings:
+
 1. Go to GitHub Settings > Developer settings > OAuth Apps
 2. Update the Authorization callback URL to: `https://your-app-name.vercel.app/api/auth/callback/github`
 3. Update the Homepage URL to: `https://your-app-name.vercel.app`
@@ -80,6 +85,7 @@ Update your GitHub OAuth App settings:
 ### Build Configuration
 
 The application uses the following build settings (automatically detected by Vercel):
+
 - **Framework**: Next.js
 - **Build Command**: `npm run build`
 - **Output Directory**: `.next`
@@ -88,6 +94,7 @@ The application uses the following build settings (automatically detected by Ver
 ### Custom Domain (Optional)
 
 To use a custom domain:
+
 1. Go to your project settings in Vercel
 2. Navigate to "Domains"
 3. Add your custom domain
@@ -97,6 +104,7 @@ To use a custom domain:
 ### Monitoring and Analytics
 
 Vercel provides built-in:
+
 - Performance monitoring
 - Error tracking
 - Analytics

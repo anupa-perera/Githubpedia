@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+
 import { isValidGitHubUrl } from '@/utils/githubUtils';
 
 interface RepositoryInputProps {
@@ -9,13 +10,17 @@ interface RepositoryInputProps {
   error?: string;
 }
 
-export function RepositoryInput({ onRepositorySubmit, isLoading = false, error }: RepositoryInputProps) {
+export function RepositoryInput({
+  onRepositorySubmit,
+  isLoading = false,
+  error,
+}: RepositoryInputProps) {
   const [url, setUrl] = useState('');
   const [validationError, setValidationError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!url.trim()) {
       setValidationError('Please enter a repository URL');
       return;
@@ -33,7 +38,7 @@ export function RepositoryInput({ onRepositorySubmit, isLoading = false, error }
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newUrl = e.target.value;
     setUrl(newUrl);
-    
+
     // Clear validation error when user starts typing
     if (validationError) {
       setValidationError('');
@@ -46,7 +51,10 @@ export function RepositoryInput({ onRepositorySubmit, isLoading = false, error }
     <div className="w-full max-w-2xl mx-auto">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="repository-url" className="block text-sm font-medium text-gray-300 mb-2">
+          <label
+            htmlFor="repository-url"
+            className="block text-sm font-medium text-gray-300 mb-2"
+          >
             GitHub Repository URL
           </label>
           <div className="flex space-x-3">
@@ -75,8 +83,18 @@ export function RepositoryInput({ onRepositorySubmit, isLoading = false, error }
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
                   </svg>
                   <span>Explore</span>
                 </>
@@ -87,8 +105,16 @@ export function RepositoryInput({ onRepositorySubmit, isLoading = false, error }
 
         {displayError && (
           <div className="flex items-center space-x-2 text-red-400 text-sm">
-            <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            <svg
+              className="w-4 h-4 flex-shrink-0"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
             </svg>
             <span>{displayError}</span>
           </div>

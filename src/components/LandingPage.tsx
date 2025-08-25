@@ -20,9 +20,10 @@ export function LandingPage() {
                   clipRule="evenodd"
                 />
               </svg>
-              <h1 className="text-xl font-bold text-gray-900">GitHub Developer Wiki</h1>
+              <h1 className="text-xl font-bold text-gray-900">
+                GitHub Developer Wiki
+              </h1>
             </div>
-            <AuthButton />
           </div>
         </div>
       </header>
@@ -34,35 +35,57 @@ export function LandingPage() {
             Explore GitHub Repositories with AI
           </h2>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Connect your GitHub account to unlock AI-powered insights about any repository. 
-            Ask questions, understand code architecture, and explore projects like never before.
+            Connect your GitHub account to unlock AI-powered insights about any
+            repository. Ask questions, understand code architecture, and explore
+            projects like never before.
           </p>
-          
+
           <div className="bg-white rounded-lg shadow-md p-8 max-w-2xl mx-auto">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               🚀 Getting Started
             </h3>
             <ol className="text-left space-y-3 text-gray-700 mb-6">
               <li className="flex items-start space-x-2">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium">1</span>
-                <span>Sign in with your GitHub account to access repositories</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium">
+                  1
+                </span>
+                <span>
+                  Sign in with your GitHub account to access repositories
+                </span>
               </li>
               <li className="flex items-start space-x-2">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium">2</span>
-                <span>Configure your preferred AI provider (OpenAI, Anthropic, or OpenRouter)</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium">
+                  2
+                </span>
+                <span>
+                  Configure your preferred AI provider (OpenAI, Anthropic, or
+                  OpenRouter)
+                </span>
               </li>
               <li className="flex items-start space-x-2">
-                <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium">3</span>
-                <span>Enter any GitHub repository URL and start asking questions</span>
+                <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium">
+                  3
+                </span>
+                <span>
+                  Enter any GitHub repository URL and start asking questions
+                </span>
               </li>
             </ol>
-            
-            <div className="text-center">
+
+            <div className="flex justify-center">
               <AuthButton />
             </div>
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="fixed bottom-4 left-0 right-0 text-center">
+        <div className="text-sm text-gray-500">
+          <p className="text-xs italic">For the devs, by a dev</p>
+          <p className="mb-1">Made by Anupa Perera (acex_X)</p>
+        </div>
+      </footer>
     </div>
   );
 }

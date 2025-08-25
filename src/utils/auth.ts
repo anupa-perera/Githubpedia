@@ -1,6 +1,7 @@
-import { getServerSession } from 'next-auth/next';
 import { AuthOptions } from 'next-auth';
+import { getServerSession } from 'next-auth/next';
 import GitHubProvider from 'next-auth/providers/github';
+
 import { AuthenticatedUser } from '../types/auth';
 
 export const authOptions: AuthOptions = {
@@ -39,7 +40,7 @@ export const authOptions: AuthOptions = {
  */
 export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
   const session = await getServerSession(authOptions);
-  
+
   if (!session?.user || !session.accessToken) {
     return null;
   }

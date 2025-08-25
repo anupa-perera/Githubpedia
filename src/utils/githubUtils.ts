@@ -23,7 +23,10 @@ export function parseGitHubUrl(url: string): GitHubRepo | null {
 
   try {
     // Remove trailing slash and .git extension
-    const cleanUrl = url.trim().replace(/\/$/, '').replace(/\.git$/, '');
+    const cleanUrl = url
+      .trim()
+      .replace(/\/$/, '')
+      .replace(/\.git$/, '');
 
     // Handle different URL formats
     let match: RegExpMatchArray | null = null;
@@ -68,13 +71,13 @@ export function isValidGitHubUrl(url: string): boolean {
 
   // Basic validation of owner and repo names
   const { owner, repo } = repoInfo;
-  
+
   // GitHub username/organization rules:
   // - May only contain alphanumeric characters or single hyphens
   // - Cannot begin or end with a hyphen
   // - Maximum 39 characters
   const validName = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
-  
+
   return validName.test(owner) && validName.test(repo);
 }
 

@@ -1,12 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/utils/auth';
-import { 
-  fetchOpenRouterModels,
-  fetchOpenAIModels,
+import { NextRequest, NextResponse } from 'next/server';
+
+import {
   fetchAnthropicModels,
+  fetchOpenAIModels,
+  fetchOpenRouterModels,
 } from '@/services/llmService';
-import { LLMProvider, LLMModel } from '@/types/llm';
+import { LLMModel, LLMProvider } from '@/types/llm';
+import { authOptions } from '@/utils/auth';
 
 interface ModelsRequest {
   provider: LLMProvider;
@@ -23,7 +24,7 @@ interface ModelsResponse {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch models based on provider
     let models: LLMModel[] = [];
-    
+
     try {
       switch (provider as LLMProvider) {
         case 'openai':
@@ -68,17 +69,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json<ModelsResponse>({
         success: true,
         models,
-        provider
+        provider,
       });
-
     } catch (error) {
       console.error(`Failed to fetch ${provider} models:`, error);
       return NextResponse.json<ModelsResponse>(
-        { success: false, error: `Failed to fetch models. Please check your API key.` },
+        {
+          success: false,
+          error: `Failed to fetch models. Please check your API key.`,
+        },
         { status: 400 }
       );
     }
-
   } catch (error) {
     console.error('Models fetch error:', error);
     return NextResponse.json<ModelsResponse>(
