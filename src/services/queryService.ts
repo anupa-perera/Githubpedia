@@ -27,6 +27,8 @@ export interface QueryContext {
     model: string;
     baseUrl?: string;
   };
+  streaming?: boolean;
+  onToken?: (token: string) => void;
 }
 
 export interface QueryResult {
@@ -68,7 +70,9 @@ export async function processQuery(
       context.query,
       context.repository,
       repositoryContext,
-      llm
+      llm,
+      context.streaming,
+      context.onToken
     );
 
     return {
@@ -202,7 +206,9 @@ async function generateResponseWithContext(
     structure?: unknown;
     error?: string;
   },
-  llm: BaseChatModel
+  llm: BaseChatModel,
+  streaming?: boolean,
+  onToken?: (token: string) => void
 ): Promise<{
   answer: string;
   sources: string[];
@@ -276,12 +282,37 @@ Note: Limited repository data is available. You should:
 Be honest about limitations while still being helpful.`;
   }
 
-  const response = await llm.invoke([
-    new SystemMessage(systemPrompt),
-    new HumanMessage(
-      `Question about ${repository.owner}/${repository.repo}: ${query}`
-    ),
-  ]);
+  let response;
+
+  if (streaming && onToken) {
+    // For streaming, collect all tokens
+    let fullResponse = '';
+
+    const stream = await llm.stream([
+      new SystemMessage(systemPrompt),
+      new HumanMessage(
+        `Question about ${repository.owner}/${repository.repo}: ${query}`
+      ),
+    ]);
+
+    for await (const chunk of stream) {
+      const token = chunk.content as string;
+      if (token) {
+        fullResponse += token;
+        onToken(token);
+      }
+    }
+
+    response = { content: fullResponse };
+  } else {
+    // Regular non-streaming response
+    response = await llm.invoke([
+      new SystemMessage(systemPrompt),
+      new HumanMessage(
+        `Question about ${repository.owner}/${repository.repo}: ${query}`
+      ),
+    ]);
+  }
 
   // Extract sources and code references from the repository context
   const sources: string[] = [];

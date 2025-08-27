@@ -68,7 +68,68 @@ export async function POST(request: NextRequest) {
     // Use the GitHub token from session
     const githubToken = session.accessToken;
 
-    // Process the query using LangChain orchestration
+    // Check if client wants streaming
+    const isStreaming = request.headers.get('accept') === 'text/stream';
+
+    if (isStreaming) {
+      // Create a streaming response
+      const encoder = new TextEncoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          try {
+            // Process the query and get streaming response
+            const result = await processQuery({
+              repository: repoInfo,
+              query,
+              githubToken,
+              llmConfig,
+              streaming: true,
+              onToken: (token: string) => {
+                const chunk = encoder.encode(
+                  `data: ${JSON.stringify({ token })}\n\n`
+                );
+                controller.enqueue(chunk);
+              },
+            });
+
+            if (!result.success) {
+              const errorChunk = encoder.encode(
+                `data: ${JSON.stringify({ error: result.error })}\n\n`
+              );
+              controller.enqueue(errorChunk);
+            } else {
+              // Send final metadata
+              const finalData = {
+                done: true,
+                sources: result.sources || [],
+                codeReferences: result.codeReferences || [],
+              };
+              const finalChunk = encoder.encode(
+                `data: ${JSON.stringify(finalData)}\n\n`
+              );
+              controller.enqueue(finalChunk);
+            }
+          } catch {
+            const errorChunk = encoder.encode(
+              `data: ${JSON.stringify({ error: 'Streaming failed' })}\n\n`
+            );
+            controller.enqueue(errorChunk);
+          } finally {
+            controller.close();
+          }
+        },
+      });
+
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/plain',
+          'Cache-Control': 'no-cache',
+          Connection: 'keep-alive',
+        },
+      });
+    }
+
+    // Fallback to regular non-streaming response
     const result = await processQuery({
       repository: repoInfo,
       query,

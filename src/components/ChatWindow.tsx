@@ -10,6 +10,7 @@ import { ErrorDisplay } from './ErrorDisplay';
 import { MessageRenderer } from './MessageRenderer';
 import { RepositoryInfo } from './RepositoryInfo';
 import { RepositoryInput } from './RepositoryInput';
+import { StreamingMessage } from './StreamingMessage';
 
 interface Message {
   id: string;
@@ -17,6 +18,7 @@ interface Message {
   content: string;
   timestamp: Date;
   repository?: string;
+  isStreaming?: boolean;
 }
 
 interface ChatWindowProps {
@@ -213,12 +215,25 @@ export function ChatWindow({
       updatedAt: new Date(),
     });
 
+    // Create placeholder assistant message for streaming
+    const assistantMessageId = `msg-${Date.now() + 1}`;
+    const assistantMessage: Message = {
+      id: assistantMessageId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+      repository: thread.repository,
+      isStreaming: true,
+    };
+    setMessages(prev => [...prev, assistantMessage]);
+
     try {
-      // Make actual API call to query processing
+      // Try streaming first
       const response = await fetch('/api/query', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Accept: 'text/stream',
         },
         body: JSON.stringify({
           repositoryUrl: `https://github.com/${thread.repository}`,
@@ -226,41 +241,98 @@ export function ChatWindow({
         }),
       });
 
-      const data = await response.json();
+      if (response.ok && response.body) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let accumulatedContent = '';
 
-      if (!response.ok) {
-        // Handle specific error types with better user messaging
-        let errorMessage = data.error || 'Failed to process query';
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-        if (response.status === 429) {
-          errorMessage =
-            '⏱️ **Rate limit exceeded**\n\nToo many requests. Please wait a few minutes before trying again. Authenticated users have higher rate limits.';
-        } else if (response.status === 401) {
-          errorMessage =
-            '🔐 **Authentication required**\n\nPlease sign in again to continue using the service.';
-        } else if (response.status === 403) {
-          errorMessage =
-            "🚫 **Access forbidden**\n\nYou don't have permission to access this repository. Make sure the repository is public or you have the necessary permissions.";
-        } else if (response.status === 404) {
-          errorMessage =
-            "🔍 **Repository not found**\n\nThe repository doesn't exist or has been moved. Please check the repository URL.";
-        } else if (response.status >= 500) {
-          errorMessage =
-            '🔧 **Server error**\n\nOur servers are experiencing issues. Please try again in a few minutes.';
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+
+                  if (data.token) {
+                    accumulatedContent += data.token;
+                    setMessages(prev =>
+                      prev.map(msg =>
+                        msg.id === assistantMessageId
+                          ? { ...msg, content: accumulatedContent }
+                          : msg
+                      )
+                    );
+                  }
+
+                  if (data.done) {
+                    setMessages(prev =>
+                      prev.map(msg =>
+                        msg.id === assistantMessageId
+                          ? { ...msg, isStreaming: false }
+                          : msg
+                      )
+                    );
+                  }
+
+                  if (data.error) {
+                    throw new Error(data.error);
+                  }
+                } catch {
+                  // Ignore malformed JSON chunks
+                }
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+      } else {
+        // Fallback to regular JSON response
+        const data = await response.json();
+
+        if (!response.ok) {
+          // Handle specific error types with better user messaging
+          let errorMessage = data.error || 'Failed to process query';
+
+          if (response.status === 429) {
+            errorMessage =
+              '⏱️ **Rate limit exceeded**\n\nToo many requests. Please wait a few minutes before trying again. Authenticated users have higher rate limits.';
+          } else if (response.status === 401) {
+            errorMessage =
+              '🔐 **Authentication required**\n\nPlease sign in again to continue using the service.';
+          } else if (response.status === 403) {
+            errorMessage =
+              "🚫 **Access forbidden**\n\nYou don't have permission to access this repository. Make sure the repository is public or you have the necessary permissions.";
+          } else if (response.status === 404) {
+            errorMessage =
+              "🔍 **Repository not found**\n\nThe repository doesn't exist or has been moved. Please check the repository URL.";
+          } else if (response.status >= 500) {
+            errorMessage =
+              '🔧 **Server error**\n\nOur servers are experiencing issues. Please try again in a few minutes.';
+          }
+
+          throw new Error(errorMessage);
         }
 
-        throw new Error(errorMessage);
+        // Update with the complete response
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === assistantMessageId
+              ? {
+                  ...msg,
+                  content: data.response || 'No response generated',
+                  isStreaming: false,
+                }
+              : msg
+          )
+        );
       }
-
-      const assistantMessage: Message = {
-        id: `msg-${Date.now() + 1}`,
-        role: 'assistant',
-        content: data.response || 'No response generated',
-        timestamp: new Date(),
-        repository: thread.repository,
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
 
@@ -278,15 +350,14 @@ export function ChatWindow({
           '❌ **Unexpected error**\n\nSomething went wrong. Please try again.';
       }
 
-      const errorMessage: Message = {
-        id: `msg-${Date.now() + 1}`,
-        role: 'assistant',
-        content: errorContent,
-        timestamp: new Date(),
-        repository: thread.repository,
-      };
-
-      setMessages(prev => [...prev, errorMessage]);
+      // Update the existing streaming message with error content
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === assistantMessageId
+            ? { ...msg, content: errorContent, isStreaming: false }
+            : msg
+        )
+      );
       setQueryError(errorContent);
     } finally {
       setIsLoading(false);
@@ -447,6 +518,11 @@ export function ChatWindow({
               >
                 {message.role === 'user' ? (
                   <div className="whitespace-pre-wrap">{message.content}</div>
+                ) : message.isStreaming ? (
+                  <StreamingMessage
+                    content={message.content}
+                    isStreaming={true}
+                  />
                 ) : (
                   <MessageRenderer content={message.content} />
                 )}
@@ -456,28 +532,6 @@ export function ChatWindow({
               </div>
             </div>
           ))
-        )}
-
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-white text-gray-900 px-4 py-3 rounded-lg max-w-md border border-gray-200 shadow-sm">
-              <div className="flex items-center space-x-3">
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-blue-600"></div>
-                <div>
-                  <div className="font-medium">Analyzing repository...</div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    Gathering code insights and generating response
-                  </div>
-                </div>
-              </div>
-              <div className="mt-3 bg-gray-200 rounded-full h-1">
-                <div
-                  className="bg-blue-600 h-1 rounded-full animate-pulse"
-                  style={{ width: '60%' }}
-                ></div>
-              </div>
-            </div>
-          </div>
         )}
 
         <div ref={messagesEndRef} />
