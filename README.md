@@ -19,13 +19,13 @@ graph TB
     NextJS --> LangChain[LangChain Orchestrator]
     LangChain --> GitHub[GitHub REST API]
     NextJS --> Session[Session Management]
-    
+
     subgraph "Next.js Application"
         UI[React Components]
         API[API Routes]
         Pages[App Router Pages]
     end
-    
+
     NextJS --> UI
     NextJS --> API
     NextJS --> Pages
@@ -34,21 +34,25 @@ graph TB
 ### Core Components
 
 #### 1. **Authentication Layer**
+
 - **GitHub OAuth Integration**: Secure authentication using NextAuth.js
 - **Session Management**: Encrypted session storage with GitHub access tokens
 - **Permission Handling**: Automatic access to user's public and private repositories
 
 #### 2. **AI Orchestration Layer**
+
 - **Multi-Provider LLM Support**: OpenAI GPT-4, Anthropic Claude, and OpenRouter
 - **LangChain Integration**: Intelligent query processing and context management
 - **User-Controlled AI**: Users provide their own API keys for full control over costs and usage
 
 #### 3. **GitHub Integration Layer**
+
 - **Direct REST API**: Production-ready GitHub API integration (no MCP dependency)
 - **Intelligent Context Retrieval**: Smart file selection based on query relevance
 - **Comprehensive Repository Analysis**: Code structure, dependencies, and patterns
 
 #### 4. **Frontend Interface**
+
 - **Modern React UI**: Built with Next.js 15 App Router and TypeScript
 - **Thread-Based Conversations**: Persistent chat history with repository context
 - **Real-Time Code Highlighting**: Syntax highlighting for code snippets and references
@@ -66,6 +70,7 @@ The entire codebase follows strict functional programming patterns:
 ## 🔧 Technology Stack
 
 ### Core Technologies
+
 - **Framework**: Next.js 15 with App Router
 - **Language**: TypeScript 5+ with strict type checking
 - **Styling**: Tailwind CSS 4
@@ -73,12 +78,14 @@ The entire codebase follows strict functional programming patterns:
 - **AI Integration**: LangChain with multi-provider support
 
 ### AI & ML
+
 - **LangChain**: Query orchestration and context management
 - **OpenAI**: GPT-4, GPT-4-turbo, GPT-3.5-turbo models
 - **Anthropic**: Claude-3 Sonnet, Haiku, and Opus models
 - **OpenRouter**: Access to 100+ models including Llama, Mistral, Gemini, and more
 
 ### Development & Deployment
+
 - **Package Manager**: npm with lock file
 - **Code Quality**: ESLint, Prettier with import sorting
 - **Deployment**: Vercel with automatic CI/CD
@@ -129,22 +136,26 @@ src/
 ### Installation
 
 1. **Clone the repository**:
+
    ```bash
    git clone <repository-url>
    cd githubpedia
    ```
 
 2. **Install dependencies**:
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**:
+
    ```bash
    cp .env.local.example .env.local
    ```
 
 4. **Configure environment variables** in `.env.local`:
+
    ```env
    # GitHub Personal Access Token
    GITHUB_TOKEN=your_github_personal_access_token
@@ -162,6 +173,7 @@ src/
    ```
 
 5. **Run the development server**:
+
    ```bash
    npm run dev
    ```
@@ -179,27 +191,32 @@ src/
 ## 🎯 Key Features
 
 ### 1. **Intelligent Repository Analysis**
+
 - **Smart Context Retrieval**: Automatically identifies and analyzes relevant code files
 - **Architecture Understanding**: Recognizes design patterns, frameworks, and dependencies
 - **Code Pattern Search**: Finds and explains implementation patterns across the codebase
 
 ### 2. **Multi-Provider AI Support**
+
 - **OpenAI Integration**: GPT-4, GPT-4-turbo, and GPT-3.5-turbo models
 - **Anthropic Claude**: Claude-3 Sonnet, Haiku, and Opus models
 - **OpenRouter Access**: 100+ models including Llama, Mistral, Gemini, and open-source options
 - **User-Controlled**: Users provide their own API keys for cost control and privacy
 
 ### 3. **Advanced Query Processing**
+
 - **LangChain Orchestration**: Intelligent query analysis and tool selection
 - **Context-Aware Responses**: Answers include relevant code snippets and file references
 - **Conversation Memory**: Maintains context across multiple queries in a thread
 
 ### 4. **Secure Authentication**
+
 - **GitHub OAuth**: Secure access to public and private repositories
 - **Encrypted Storage**: API keys encrypted using AES-256 encryption
 - **Session Management**: Secure session handling with automatic token refresh
 
 ### 5. **Modern User Interface**
+
 - **Thread-Based Chat**: Organize conversations by repository or topic
 - **Code Highlighting**: Syntax highlighting for all supported languages
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
@@ -208,17 +225,20 @@ src/
 ## 🔒 Security & Privacy
 
 ### Data Protection
+
 - **API Key Encryption**: All user API keys encrypted with AES-256
 - **No Server Logging**: API keys never logged or exposed in server logs
 - **Session Security**: HTTP-only cookies with secure session management
 - **HTTPS Enforcement**: All production traffic encrypted in transit
 
 ### GitHub Integration
+
 - **OAuth Security**: Secure GitHub authentication with proper scope management
 - **Token Management**: Automatic token refresh and expiration handling
 - **Permission Respect**: Only accesses repositories user has permission to view
 
 ### AI Provider Security
+
 - **User-Controlled Keys**: Users provide their own API keys for full control
 - **No Key Storage**: API keys stored encrypted and only in user sessions
 - **Provider Isolation**: Each user's AI requests use their own credentials
@@ -271,6 +291,7 @@ interface QueryResponse {
 ## 🛠️ Development
 
 ### Code Quality
+
 ```bash
 # Linting
 npm run lint
@@ -282,12 +303,15 @@ npm run format:check
 ```
 
 ### Testing
+
 The application includes comprehensive error handling and validation:
+
 - **API Validation**: All endpoints validate inputs and handle errors gracefully
 - **Type Safety**: Strict TypeScript configuration prevents runtime type errors
 - **Error Boundaries**: React error boundaries catch and handle UI errors
 
 ### Performance Optimization
+
 - **Serverless Functions**: API routes optimized for Vercel's serverless environment
 - **Code Splitting**: Automatic code splitting with Next.js App Router
 - **Caching**: Intelligent caching of repository data and AI responses
@@ -365,9 +389,11 @@ See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
 ### Core Endpoints
 
 #### `POST /api/query`
+
 Process repository queries using AI orchestration.
 
 **Request**:
+
 ```json
 {
   "repositoryUrl": "https://github.com/owner/repo",
@@ -377,6 +403,7 @@ Process repository queries using AI orchestration.
 ```
 
 **Response**:
+
 ```json
 {
   "response": "The authentication system uses...",
@@ -394,9 +421,11 @@ Process repository queries using AI orchestration.
 ```
 
 #### `POST /api/llm-setup`
+
 Configure user's AI provider settings.
 
 **Request**:
+
 ```json
 {
   "provider": "openai",
@@ -406,9 +435,11 @@ Configure user's AI provider settings.
 ```
 
 #### `GET /api/llm-setup`
+
 Check current LLM configuration status.
 
 **Response**:
+
 ```json
 {
   "configured": true,
@@ -422,16 +453,19 @@ Check current LLM configuration status.
 ### Common Issues
 
 #### Authentication Problems
+
 - **GitHub OAuth fails**: Check callback URL matches your deployment URL
 - **Token expired**: System automatically refreshes tokens, but manual re-auth may be needed
 - **Repository access denied**: Ensure your GitHub token has appropriate permissions
 
 #### AI Provider Issues
+
 - **API key invalid**: Verify your API key is correct and has sufficient credits
 - **Model not found**: Check if the selected model is available for your provider
 - **Rate limits**: Each provider has different rate limits - consider upgrading your plan
 
 #### Query Processing Errors
+
 - **Repository not found**: Verify the repository URL is correct and accessible
 - **Large repository timeout**: Very large repositories may take longer to process
 - **Network errors**: Check internet connection and GitHub API status
@@ -458,4 +492,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Made with ❤️ by Anupa Perera (acex_X)**  
-*For the devs, by a dev*
+_For the devs, by a dev_
